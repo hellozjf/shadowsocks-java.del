@@ -7,8 +7,6 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
 
 /**
  * @author hellozjf
@@ -28,6 +26,7 @@ public class SSServerStarter {
         return args -> {
             // 打印配置信息
             Config config = ConfigLoaderUtils.load("config.json");
+            // TODO 根据命令行参数初始化config
             log.debug("config={}", config);
 
             // 启动SSServer

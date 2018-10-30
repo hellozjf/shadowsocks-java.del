@@ -11,6 +11,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioDatagramChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -18,6 +19,12 @@ import java.util.Map;
 @Component
 @Slf4j
 public class SSServer {
+
+    @Autowired
+    private TcpChannelInitializer tcpChannelInitializer;
+
+    @Autowired
+    private UdpChannelInitializer udpChannelInitializer;
 
     private EventLoopGroup bossGroup = new NioEventLoopGroup();
     private EventLoopGroup workerGroup = new NioEventLoopGroup();
@@ -53,7 +60,7 @@ public class SSServer {
                 .childOption(ChannelOption.TCP_NODELAY, true)
                 //关闭时等待1s发送关闭
                 .childOption(ChannelOption.SO_LINGER, 1)
-                .childHandler(new TcpChannelInitializer(method, password, obfs, obfsparam));
+                .childHandler(tcpChannelInitializer.init(method, password, obfs, obfsparam));
 
         log.debug("TCP Start At Port {}", port);
         tcpBootstrap.bind(server, port).sync();
@@ -70,7 +77,7 @@ public class SSServer {
                 .option(ChannelOption.SO_RCVBUF, 64 * 1024)
                 // 设置UDP写缓冲区为64k
                 .option(ChannelOption.SO_SNDBUF, 64 * 1024)
-                .handler(new UdpChannelInitializer(method, password, obfs, obfsparam))
+                .handler(udpChannelInitializer.init(method, password, obfs, obfsparam))
         ;
         udpBootstrap.bind(server, port).sync();
         log.debug("udp listen at {}:{}", server, port);
