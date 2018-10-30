@@ -50,14 +50,15 @@ public class SSTcpProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
     private void proxy(ChannelHandlerContext clientCtx, ByteBuf msg) {
 //        log.debug("channel id {},pc is null {},{}", clientCtx.channel().id().toString(), (remoteChannel == null), msg.readableBytes());
         if (remoteChannel == null && proxyClient == null) {
-            proxyClient = new Bootstrap();//
+            proxyClient = new Bootstrap();
 
             InetSocketAddress clientRecipient = clientCtx.channel().attr(SSCommon.REMOTE_DES).get();
 
             proxyClient.group(clientCtx.channel().eventLoop()).channel(NioSocketChannel.class)
                     .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 60 * 1000)
                     .option(ChannelOption.SO_KEEPALIVE, true)
-                    .option(ChannelOption.SO_RCVBUF, 32 * 1024)// 读缓冲区为32k
+                    // 读缓冲区为32k
+                    .option(ChannelOption.SO_RCVBUF, 32 * 1024)
                     .option(ChannelOption.TCP_NODELAY, true)
                     .handler(
                             new ChannelInitializer<Channel>() {
@@ -88,7 +89,7 @@ public class SSTcpProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
                                                 }
 
                                                 @Override
-                                                public void channelActive(ChannelHandlerContext ctx) throws Exception {
+                                                public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
                                                     try {
                                                         // 将clientCtx里面的变量同样也设置到ctx里面
                                                         ctx.channel().attr(SSCommon.SERVER).set(clientCtx.channel().attr(SSCommon.SERVER).get());
@@ -97,6 +98,11 @@ public class SSTcpProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
                                                     } catch (Exception e) {
                                                         log.error("e={}", e);
                                                     }
+                                                }
+
+                                                @Override
+                                                public void channelActive(ChannelHandlerContext ctx) throws Exception {
+                                                    super.channelActive(ctx);
                                                 }
 
                                                 @Override
