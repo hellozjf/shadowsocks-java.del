@@ -1,12 +1,18 @@
 logging:
   level:
-    com.hellozjf.shadowsocks.ssserver: debug
+    com.hellozjf.shadowsocks.ssserver: info
 spring:
   datasource:
-    url: jdbc:h2:./ssserver
-    driver-class-name: org.h2.Driver
-    username: sa
-    password:
+    # h2
+#    url: jdbc:h2:./ssserver
+#    driver-class-name: org.h2.Driver
+#    username: sa
+#    password:
+    # mysql
+    url: jdbc:mysql://aliyun.hellozjf.com:3306/springboot?useUnicode=true&characterEncoding=UTF-8
+    driver-class-name: com.mysql.jdbc.Driver
+    username: root
+    password: Zjf@1234
   jpa:
     show-sql: false
     hibernate:
@@ -14,3 +20,5 @@ spring:
   h2:
     console:
       enabled: true
+server:
+  port: 8488

@@ -45,13 +45,15 @@ public class SSCheckerReceive extends SimpleChannelInboundHandler<Object> {
 
         if (isUdp) {
             DatagramPacket udpRaw = ((DatagramPacket) msg);
-            //no cipher, min size = 1 + 1 + 2 ,[1-byte type][variable-length host][2-byte port]
+            //no cipher, min size = 1 + 1 + 2 ,[1-byte type][variable-length host][2-byte serverPort]
             if (udpRaw.content().readableBytes() < 4) {
                 return;
             }
+            ctx.channel().attr(SSCommon.SERVER).set(udpRaw.recipient());
             ctx.channel().attr(SSCommon.CLIENT).set(udpRaw.sender());
             ctx.fireChannelRead(udpRaw.content());
         } else {
+            ctx.channel().attr(SSCommon.SERVER).set((InetSocketAddress) ctx.channel().localAddress());
             ctx.channel().attr(SSCommon.CLIENT).set((InetSocketAddress) ctx.channel().remoteAddress());
             ctx.channel().attr(SSCommon.IS_FIRST_TCP_PACK).set(true);
             ctx.channel().pipeline().remove(this);

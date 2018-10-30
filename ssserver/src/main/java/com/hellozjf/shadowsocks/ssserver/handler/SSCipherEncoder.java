@@ -15,10 +15,10 @@ public class SSCipherEncoder extends MessageToMessageEncoder<ByteBuf> {
 
     @Override
     protected void encode(ChannelHandlerContext ctx, ByteBuf msg, List<Object> out) {
-        log.debug("encode msg size:{}", msg.readableBytes());
+//        log.debug("encode msg size:{}", msg.readableBytes());
         ICrypt _crypt = ctx.channel().attr(SSCommon.CIPHER).get();
         byte[] encryptedData = CryptUtil.encrypt(_crypt, msg);
-        log.debug("encode after encryptedData size:{}", encryptedData.length);
+//        log.debug("encode after encryptedData size:{}", encryptedData.length);
         out.add(msg.retain().clear().writeBytes(encryptedData));
     }
 }

@@ -15,41 +15,26 @@ import java.util.List;
  * @author Jingfeng Zhou
  */
 @Slf4j
-@ChannelHandler.Sharable
-@Component
 public class TcpChannelInitializer extends ChannelInitializer<NioSocketChannel> {
-
-    @Autowired
-    private SSTimeoutHandler ssTimeoutHandler;
-
-    @Autowired
-    private SSInSiteFlowStatisticsHandler ssInSiteFlowStatisticsHandler;
-
-    @Autowired
-    private SSOutSiteFlowStatisticsHandler ssOutSiteFlowStatisticsHandler;
 
     private String method;
     private String password;
     private String obfs;
     private String obfsparam;
 
-    public TcpChannelInitializer init(String method, String password, String obfs, String obfsparam) {
+    public TcpChannelInitializer(String method, String password, String obfs, String obfsparam) {
         this.method = method;
         this.password = password;
         this.obfs = obfs;
         this.obfsparam = obfsparam;
-        return this;
     }
 
     @Override
     protected void initChannel(NioSocketChannel ctx) {
-        log.debug("channel initializer");
+//        log.debug("channel initializer");
         ctx.pipeline()
                 //timeout
-                .addLast("timeout", ssTimeoutHandler.init(ctx))
-                // 流量统计
-                .addLast("inSiteFlowStatistics", ssInSiteFlowStatisticsHandler)
-                .addLast("outSiteFlowStatistics", ssOutSiteFlowStatisticsHandler);
+                .addLast("timeout", new SSTimeoutHandler(ctx));
         // obfs pugin
         List<ChannelHandler> obfsHandlers = ObfsFactory.getObfsHandler(obfs);
         if (obfsHandlers != null) {
@@ -63,13 +48,16 @@ public class TcpChannelInitializer extends ChannelInitializer<NioSocketChannel> 
                 .addLast("ssCheckerReceive", new SSCheckerReceive(method, password))
                 .addLast("ssCipherDecoder", new SSCipherDecoder())
                 .addLast("ssProtocolDecoder", new SSProtocolDecoder())
+                // 流量统计出口
+                .addLast("outSiteFlowStatistics", new SSOutSiteFlowStatisticsHandler())
+                // 流量统计入口
+                .addLast("inSiteFlowStatistics", new SSInSiteFlowStatisticsHandler())
                 //ss-proxy
                 .addLast("ssTcpProxy", new SSTcpProxyHandler())
                 //ss-out
                 .addLast("ssCheckerSend", new SSCheckerSend())
                 .addLast("ssCipherEncoder", new SSCipherEncoder())
-                .addLast("ssProtocolEncoder", new SSProtocolEncoder())
-        ;
+                .addLast("ssProtocolEncoder", new SSProtocolEncoder());
     }
 }
 

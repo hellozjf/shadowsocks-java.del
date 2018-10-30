@@ -1,6 +1,6 @@
 package com.hellozjf.shadowsocks.ssserver;
 
-import com.hellozjf.shadowsocks.ssserver.dataobject.Config;
+import com.hellozjf.shadowsocks.ssserver.config.Config;
 import com.hellozjf.shadowsocks.ssserver.handler.TcpChannelInitializer;
 import com.hellozjf.shadowsocks.ssserver.handler.UdpChannelInitializer;
 import io.netty.bootstrap.Bootstrap;
@@ -21,15 +21,12 @@ import java.util.Map;
 public class SSServer {
 
     @Autowired
-    private TcpChannelInitializer tcpChannelInitializer;
-
-    @Autowired
-    private UdpChannelInitializer udpChannelInitializer;
+    private Config config;
 
     private EventLoopGroup bossGroup = new NioEventLoopGroup();
     private EventLoopGroup workerGroup = new NioEventLoopGroup();
 
-    public void start(Config config) throws Exception {
+    public void start() throws Exception {
         if (config.getPortPassword() != null) {
             // 如果当前配置中有多用户，那么以多用户为准
             for (Map.Entry<Integer, String> portPassword : config.getPortPassword().entrySet()) {
@@ -60,9 +57,9 @@ public class SSServer {
                 .childOption(ChannelOption.TCP_NODELAY, true)
                 //关闭时等待1s发送关闭
                 .childOption(ChannelOption.SO_LINGER, 1)
-                .childHandler(tcpChannelInitializer.init(method, password, obfs, obfsparam));
+                .childHandler(new TcpChannelInitializer(method, password, obfs, obfsparam));
 
-        log.debug("TCP Start At Port {}", port);
+        log.info("TCP Start At {}:{}", server, port);
         tcpBootstrap.bind(server, port).sync();
     }
 
@@ -77,10 +74,10 @@ public class SSServer {
                 .option(ChannelOption.SO_RCVBUF, 64 * 1024)
                 // 设置UDP写缓冲区为64k
                 .option(ChannelOption.SO_SNDBUF, 64 * 1024)
-                .handler(udpChannelInitializer.init(method, password, obfs, obfsparam))
+                .handler(new UdpChannelInitializer(method, password, obfs, obfsparam))
         ;
         udpBootstrap.bind(server, port).sync();
-        log.debug("udp listen at {}:{}", server, port);
+        log.info("UDP Start At {}:{}", server, port);
     }
 
     public void stop() {

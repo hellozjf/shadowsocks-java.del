@@ -1,12 +1,11 @@
 package com.hellozjf.shadowsocks.ssserver.dataobject;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.Lob;
 import java.util.Date;
 
 /**
@@ -26,19 +25,50 @@ public class FlowStatisticsDetail {
     private Long id;
 
     /**
-     * 一个端口对应一个用户
+     * 方向，@See com.hellozjf.shadowsocks.ssserver.constant.InOutSiteEnum
      */
-    private Integer port;
+    private Integer direction;
 
     /**
      * 入/出站的流量
      */
-    private Integer flow;
+    private Integer flowSize;
 
     /**
-     * 方向，@See com.hellozjf.shadowsocks.ssserver.constant.InOutSiteEnums
+     * Client所访问的SS服务端地址
      */
-    private Integer direction;
+    private String serverAddress;
+
+    /**
+     * 每个Client都会占用SS服务端上面的一个端口
+     */
+    private Integer serverPort;
+
+    /**
+     * Client使用的地址
+     */
+    private String clientHost;
+
+    /**
+     * Client使用的端口
+     */
+    private Integer clientPort;
+
+    /**
+     * 要访问的远程地址
+     */
+    private String remoteAddress;
+
+    /**
+     * 要访问的远程端口
+     */
+    private Integer remotePort;
+
+    /**
+     * 数据字节数组，这里必须要用byte[]，否则字符串转Byte[]会很麻烦
+     */
+    @Lob
+    private byte[] content;
 
     /**
      * 创建时间

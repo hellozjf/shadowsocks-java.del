@@ -16,8 +16,6 @@ import java.util.concurrent.TimeUnit;
  * @author Jingfeng Zhou
  */
 @Slf4j
-@ChannelHandler.Sharable
-@Component
 public class SSTimeoutHandler extends IdleStateHandler {
 
     private NioSocketChannel nioSocketChannel;
@@ -26,9 +24,9 @@ public class SSTimeoutHandler extends IdleStateHandler {
         super(0, 0, SSCommon.TCP_PROXY_IDEL_TIME, TimeUnit.SECONDS);
     }
 
-    public SSTimeoutHandler init(NioSocketChannel nioSocketChannel) {
+    public SSTimeoutHandler(NioSocketChannel nioSocketChannel) {
+        this();
         this.nioSocketChannel = nioSocketChannel;
-        return this;
     }
 
     @Override

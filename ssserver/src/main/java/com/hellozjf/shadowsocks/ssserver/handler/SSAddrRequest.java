@@ -23,7 +23,7 @@ public final class SSAddrRequest {
             switch(addressType) {
                 case IPv4:
                     if (!NetUtil.isValidIpV4Address(host)) {
-                        throw new IllegalArgumentException(host + " is not a valid IPv4 address");
+                        throw new IllegalArgumentException(host + " is not a valid IPv4 serverAddress");
                     }
                     break;
                 case DOMAIN:
@@ -33,7 +33,7 @@ public final class SSAddrRequest {
                     break;
                 case IPv6:
                     if (!NetUtil.isValidIpV6Address(host)) {
-                        throw new IllegalArgumentException(host + " is not a valid IPv6 address");
+                        throw new IllegalArgumentException(host + " is not a valid IPv6 serverAddress");
                     }
                 case UNKNOWN:
             }

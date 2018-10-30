@@ -8,11 +8,12 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageDecoder;
 import io.netty.util.internal.logging.InternalLogger;
 import io.netty.util.internal.logging.InternalLoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
+@Slf4j
 public class SSCipherDecoder extends MessageToMessageDecoder<ByteBuf> {
-    private static InternalLogger logger =  InternalLoggerFactory.getInstance(SSCipherDecoder.class);
 
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf msg, List<Object> list) throws Exception {
@@ -26,7 +27,7 @@ public class SSCipherDecoder extends MessageToMessageDecoder<ByteBuf> {
             }
             return;
         }
-        logger.debug( (ctx.channel().attr(SSCommon.IS_UDP).get()? "(UDP)":"(TCP)")+ " decode after:"+ data.length);
+//        log.debug( (ctx.channel().attr(SSCommon.IS_UDP).get()? "(UDP)":"(TCP)")+ " decode after:"+ data.length);
         // 将解密的数据交给下一个处理器去处理
         list.add(msg.retain().clear().writeBytes(data));
     }

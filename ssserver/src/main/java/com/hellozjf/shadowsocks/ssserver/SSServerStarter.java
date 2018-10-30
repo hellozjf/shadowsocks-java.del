@@ -1,7 +1,5 @@
 package com.hellozjf.shadowsocks.ssserver;
 
-import com.hellozjf.shadowsocks.ssserver.dataobject.Config;
-import com.hellozjf.shadowsocks.ssserver.util.ConfigLoaderUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -23,14 +21,6 @@ public class SSServerStarter {
 
     @Bean
     public CommandLineRunner commandLineRunner(SSServer ssServer) {
-        return args -> {
-            // 打印配置信息
-            Config config = ConfigLoaderUtils.load("config.json");
-            // TODO 根据命令行参数初始化config
-            log.debug("config={}", config);
-
-            // 启动SSServer
-            ssServer.start(config);
-        };
+        return args -> ssServer.start();
     }
 }

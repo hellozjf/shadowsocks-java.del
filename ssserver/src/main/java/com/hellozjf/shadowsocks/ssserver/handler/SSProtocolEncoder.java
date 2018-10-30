@@ -8,28 +8,28 @@ import io.netty.handler.codec.MessageToMessageEncoder;
 import io.netty.handler.codec.socks.SocksAddressType;
 import io.netty.util.internal.logging.InternalLogger;
 import io.netty.util.internal.logging.InternalLoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetSocketAddress;
 import java.util.List;
 
+@Slf4j
 public class SSProtocolEncoder extends MessageToMessageEncoder<ByteBuf> {
-    private static InternalLogger logger =  InternalLoggerFactory.getInstance(SSProtocolEncoder.class);
-
 
     @Override
     protected void encode(ChannelHandlerContext ctx, ByteBuf msg, List<Object> out) {
-        logger.debug("encode " + msg.readableBytes());
+//        log.debug("encode " + msg.readableBytes());
         //组装ss协议
-        //udp [target address][payload]
+        //udp [target serverAddress][payload]
         //tcp only [payload]
         boolean isUdp = ctx.channel().attr(SSCommon.IS_UDP).get();
         if (isUdp) {
             ByteBuf addrBuff = Unpooled.buffer(128);
             SSAddrRequest ssAddr;
             InetSocketAddress remoteSrc = ctx.channel().attr(SSCommon.REMOTE_SRC).get();
-            logger.debug("remote addr:{}", remoteSrc);
+            log.debug("remote addr:{}", remoteSrc);
             if (remoteSrc.getAddress() instanceof Inet6Address) {
                 ssAddr = new SSAddrRequest(SocksAddressType.IPv6, remoteSrc.getHostString(), remoteSrc.getPort());
             } else if (remoteSrc.getAddress() instanceof Inet4Address) {

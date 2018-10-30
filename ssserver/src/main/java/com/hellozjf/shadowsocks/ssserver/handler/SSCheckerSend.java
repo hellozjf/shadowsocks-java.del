@@ -17,7 +17,7 @@ public class SSCheckerSend extends ChannelOutboundHandlerAdapter {
 
     @Override
     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
-        log.debug("SSCheckerSend write");
+//        log.debug("SSCheckerSend write");
         boolean isUdp = ctx.channel().attr(SSCommon.IS_UDP).get();
         if (isUdp) {
             InetSocketAddress client = ctx.channel().attr(SSCommon.CLIENT).get();
