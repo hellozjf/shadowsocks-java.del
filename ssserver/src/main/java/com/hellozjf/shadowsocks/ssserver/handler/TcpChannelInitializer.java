@@ -31,7 +31,6 @@ public class TcpChannelInitializer extends ChannelInitializer<NioSocketChannel> 
 
     @Override
     protected void initChannel(NioSocketChannel ctx) {
-//        log.debug("channel initializer");
         ctx.pipeline()
                 //timeout
                 .addLast("timeout", new SSTimeoutHandler(ctx));

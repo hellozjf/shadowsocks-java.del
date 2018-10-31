@@ -12,7 +12,6 @@ import io.netty.channel.ChannelHandlerContext;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.InetSocketAddress;
-import java.util.Date;
 
 /**
  * @author Jingfeng Zhou
@@ -46,8 +45,6 @@ public class FlowStatisticsDetailRepositoryUtils {
         flowStatisticsDetail.setClientPort(clientAddress.getPort());
         flowStatisticsDetail.setRemoteAddress(remoteAddress.getHostString());
         flowStatisticsDetail.setRemotePort(remoteAddress.getPort());
-        flowStatisticsDetail.setGmtCreate(new Date());
-        flowStatisticsDetail.setGmtModified(new Date());
         flowStatisticsDetailRepository.save(flowStatisticsDetail);
         log.debug("flowStatisticsDetail={}", flowStatisticsDetail);
     }

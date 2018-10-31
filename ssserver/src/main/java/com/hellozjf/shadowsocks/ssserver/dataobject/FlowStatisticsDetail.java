@@ -3,10 +3,7 @@ package com.hellozjf.shadowsocks.ssserver.dataobject;
 import lombok.Data;
 
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
 import javax.persistence.Lob;
-import java.util.Date;
 
 /**
  * @author Jingfeng Zhou
@@ -15,14 +12,7 @@ import java.util.Date;
  */
 @Data
 @Entity
-public class FlowStatisticsDetail {
-
-    /**
-     * ID
-     */
-    @Id
-    @GeneratedValue
-    private Long id;
+public class FlowStatisticsDetail extends BaseEntity {
 
     /**
      * 方向，@See com.hellozjf.shadowsocks.ssserver.constant.InOutSiteEnum
@@ -69,14 +59,4 @@ public class FlowStatisticsDetail {
      */
     @Lob
     private byte[] content;
-
-    /**
-     * 创建时间
-     */
-    private Date gmtCreate;
-
-    /**
-     * 更新时间
-     */
-    private Date gmtModified;
 }

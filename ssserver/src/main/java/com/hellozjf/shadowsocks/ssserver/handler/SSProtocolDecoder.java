@@ -30,26 +30,27 @@ public class SSProtocolDecoder extends MessageToMessageDecoder<ByteBuf> {
 
         // [1-byte type][variable-length host][2-byte serverPort]
         if (msg.readableBytes() < 1 + 1 + 2) {
+            log.warn("msg.readableBytes() < 1 + 1 + 2");
             return;
         }
 
         Boolean isUdp = ctx.channel().attr(SSCommon.IS_UDP).get();
         Boolean isFirstTcpPack = ctx.channel().attr(SSCommon.IS_FIRST_TCP_PACK).get();
 
-//        log.debug("dataBuff readableBytes:" + msg.readableBytes());
-
+        // UDP包和第一个TCP包，需要从数据包头部解析协议类型，地址，端口
         if (isUdp || (isFirstTcpPack != null && isFirstTcpPack)) {
             // 从数据包头部解析出协议类型（ipv4，domain，ipv6），地址和端口
             SSAddrRequest addrRequest = SSAddrRequest.getAddrRequest(msg);
             if (addrRequest == null) {
-                log.error("fail to get serverAddress request from {},pls check client's cipher setting", ctx.channel().attr(SSCommon.CLIENT).get().getHostString());
+                log.warn("无法解析远程服务器地址，请确保客户端{}:{}在服务端端口{}上面使用了正确的密码和加密方式",
+                        ctx.channel().attr(SSCommon.CLIENT).get().getHostString(),
+                        ctx.channel().attr(SSCommon.CLIENT).get().getPort(),
+                        ctx.channel().attr(SSCommon.SERVER).get().getPort());
                 if (!ctx.channel().attr(SSCommon.IS_UDP).get()) {
                     ctx.close();
                 }
                 return;
             }
-//            log.debug(ctx.channel().id().toString() + " addressType = " + addrRequest.addressType() + ",host = " + addrRequest.host() + ",serverPort = " + addrRequest.port() + ",dataBuff = "
-//                    + msg.readableBytes());
             ctx.channel().attr(SSCommon.REMOTE_DES).set(new InetSocketAddress(addrRequest.host(), addrRequest.port()));
             ctx.channel().attr(SSCommon.IS_FIRST_TCP_PACK).set(false);
         }
@@ -62,6 +63,5 @@ public class SSProtocolDecoder extends MessageToMessageDecoder<ByteBuf> {
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         InetSocketAddress clientSender = ctx.channel().attr(SSCommon.CLIENT).get();
         log.error("client {},error :{}", clientSender.toString(), cause.getMessage());
-//        super.exceptionCaught(ctx, cause);
     }
 }

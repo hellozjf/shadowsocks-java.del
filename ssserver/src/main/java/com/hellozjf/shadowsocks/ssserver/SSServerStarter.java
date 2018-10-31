@@ -5,6 +5,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 /**
  * @author hellozjf
@@ -12,6 +13,7 @@ import org.springframework.context.annotation.Bean;
  * ssserver启动类
  */
 @SpringBootApplication
+@EnableJpaAuditing
 @Slf4j
 public class SSServerStarter {
 

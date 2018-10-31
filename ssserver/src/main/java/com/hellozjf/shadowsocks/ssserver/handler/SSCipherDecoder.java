@@ -23,11 +23,11 @@ public class SSCipherDecoder extends MessageToMessageDecoder<ByteBuf> {
         if (data == null) {
             // 如果是tcp通道，解密不出来数据，那就把通道关了
             if (!ctx.channel().attr(SSCommon.IS_UDP).get()) {
+                log.warn("无法解析Client -> Server的数据");
                 ctx.close();
             }
             return;
         }
-//        log.debug( (ctx.channel().attr(SSCommon.IS_UDP).get()? "(UDP)":"(TCP)")+ " decode after:"+ data.length);
         // 将解密的数据交给下一个处理器去处理
         list.add(msg.retain().clear().writeBytes(data));
     }

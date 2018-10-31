@@ -1,0 +1,16 @@
+logging:
+  level:
+    com.hellozjf.shadowsocks.ssserver: info
+  file: ssserver.log
+spring:
+  datasource:
+    url: jdbc:mysql://aliyun.hellozjf.com:3306/springboot?useUnicode=true&characterEncoding=UTF-8
+    driver-class-name: com.mysql.jdbc.Driver
+    username: root
+    password: Zjf@1234
+  jpa:
+    show-sql: false
+    hibernate:
+      ddl-auto: update
+server:
+  port: 8488

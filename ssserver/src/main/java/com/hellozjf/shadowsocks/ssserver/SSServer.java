@@ -1,8 +1,10 @@
 package com.hellozjf.shadowsocks.ssserver;
 
 import com.hellozjf.shadowsocks.ssserver.config.Config;
+import com.hellozjf.shadowsocks.ssserver.dataobject.UserInfo;
 import com.hellozjf.shadowsocks.ssserver.handler.TcpChannelInitializer;
 import com.hellozjf.shadowsocks.ssserver.handler.UdpChannelInitializer;
+import com.hellozjf.shadowsocks.ssserver.repository.UserInfoRepository;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelOption;
@@ -14,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Map;
 
 @Component
@@ -23,19 +26,74 @@ public class SSServer {
     @Autowired
     private Config config;
 
+    @Autowired
+    private UserInfoRepository userInfoRepository;
+
     private EventLoopGroup bossGroup = new NioEventLoopGroup();
     private EventLoopGroup workerGroup = new NioEventLoopGroup();
 
+    /**
+     * 通过配置文件初始化数据库中的用户信息
+     */
+    private void addUser(Integer port, String username, String password, Integer timeout, String method) {
+        UserInfo userInfo = new UserInfo();
+        userInfo.setPort(port);
+        userInfo.setUsername(username);
+        userInfo.setPassword(password);
+        userInfo.setTimeout(timeout);
+        userInfo.setMethod(method);
+        userInfoRepository.save(userInfo);
+    }
+
     public void start() throws Exception {
-        if (config.getPortPassword() != null) {
-            // 如果当前配置中有多用户，那么以多用户为准
-            for (Map.Entry<Integer, String> portPassword : config.getPortPassword().entrySet()) {
-                startSingle(config.getServer(), portPassword.getKey(), portPassword.getValue(), config.getMethod());
+
+        // 首先从数据库中获取用户信息
+        List<UserInfo> userInfoList = userInfoRepository.findAll();
+        if (userInfoList.size() == 0) {
+            // 说明数据库中没有用户信息，那么就从classpath:config.json中初始化用户
+            if (config.getPortPassword() != null) {
+                // 如果当前配置中有多用户，那么以多用户为准
+                for (Map.Entry<Integer, String> portPassword : config.getPortPassword().entrySet()) {
+                    try {
+                        // 启动对应的TCP和UDP端口
+                        startSingle(config.getServer(),
+                                portPassword.getKey(),
+                                portPassword.getValue(),
+                                config.getMethod());
+
+                        // 添加user+port用户
+                        addUser(portPassword.getKey(),
+                                "user" + portPassword.getKey(),
+                                portPassword.getValue(),
+                                config.getTimeout(),
+                                config.getMethod());
+                    } catch (Exception e) {
+                        // TODO 如果端口开启成功，但是数据库写入失败，怎么办？
+                        log.error("startSingle failed, e = {}", e);
+                    }
+                }
+            } else {
+                // 否则以单用户为准
+                try {
+                    // 启动对应的TCP和UDP端口
+                    startSingle(config.getServer(),
+                            config.getServerPort(),
+                            config.getPassword(),
+                            config.getMethod());
+
+                    // 添加admin用户
+                    addUser(config.getServerPort(),
+                            "admin",
+                            config.getPassword(),
+                            config.getTimeout(),
+                            config.getMethod());
+                } catch (Exception e) {
+                    // TODO 如果端口开启成功，但是数据库写入失败，怎么办？
+                    log.error("startSingle failed, e = {}", e);
+                }
             }
-        } else {
-            // 否则以单用户为准
-            startSingle(config.getServer(), config.getServerPort(), config.getPassword(), config.getMethod());
         }
+
     }
 
     private void startSingle(String server, Integer port, String password, String method) throws Exception {
