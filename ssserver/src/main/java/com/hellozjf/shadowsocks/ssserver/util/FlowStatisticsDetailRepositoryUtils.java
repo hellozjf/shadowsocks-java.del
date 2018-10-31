@@ -1,6 +1,7 @@
 package com.hellozjf.shadowsocks.ssserver.util;
 
 import com.hellozjf.shadowsocks.ssserver.SpringContextUtil;
+import com.hellozjf.shadowsocks.ssserver.constant.InOutSiteEnum;
 import com.hellozjf.shadowsocks.ssserver.constant.ResultEnum;
 import com.hellozjf.shadowsocks.ssserver.constant.SSCommon;
 import com.hellozjf.shadowsocks.ssserver.dataobject.FlowStatisticsDetail;
@@ -46,7 +47,13 @@ public class FlowStatisticsDetailRepositoryUtils {
         flowStatisticsDetail.setRemoteAddress(remoteAddress.getHostString());
         flowStatisticsDetail.setRemotePort(remoteAddress.getPort());
         flowStatisticsDetailRepository.save(flowStatisticsDetail);
-        log.debug("flowStatisticsDetail={}", flowStatisticsDetail);
+
+        InOutSiteEnum inOutSiteEnum = InOutSiteEnum.getByDirection(direction);
+        if (inOutSiteEnum == null) {
+            log.error("unknown direction {}", direction);
+        } else {
+            log.debug("{} size {}", inOutSiteEnum.getDetail(), byteBuf.readableBytes());
+        }
     }
 
     public static FlowStatisticsDetailRepository getFlowStatisticsDetailRepository() {

@@ -60,9 +60,4 @@ public class SSCheckerReceive extends SimpleChannelInboundHandler<Object> {
             ctx.fireChannelRead(msg);
         }
     }
-
-    @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        super.exceptionCaught(ctx, cause);
-    }
 }

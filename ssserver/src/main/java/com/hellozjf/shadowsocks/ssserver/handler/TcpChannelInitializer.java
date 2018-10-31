@@ -1,15 +1,16 @@
 package com.hellozjf.shadowsocks.ssserver.handler;
 
+import com.hellozjf.shadowsocks.ssserver.constant.InOutSiteEnum;
+import com.hellozjf.shadowsocks.ssserver.constant.SSCommon;
 import com.hellozjf.shadowsocks.ssserver.handler.obfs.ObfsFactory;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import lombok.AllArgsConstructor;
+import io.netty.handler.timeout.IdleStateHandler;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Jingfeng Zhou
@@ -33,7 +34,8 @@ public class TcpChannelInitializer extends ChannelInitializer<NioSocketChannel> 
     protected void initChannel(NioSocketChannel ctx) {
         ctx.pipeline()
                 //timeout
-                .addLast("timeout", new SSTimeoutHandler(ctx));
+                .addLast("timeout", new IdleStateHandler(0, 0, SSCommon.TCP_PROXY_IDEL_TIME, TimeUnit.SECONDS))
+                .addLast("idleClose", new IdleCloseHandler());
         // obfs pugin
         List<ChannelHandler> obfsHandlers = ObfsFactory.getObfsHandler(obfs);
         if (obfsHandlers != null) {
@@ -43,17 +45,17 @@ public class TcpChannelInitializer extends ChannelInitializer<NioSocketChannel> 
         }
         //ss
         ctx.pipeline()
-                //ss-in
+                // ss-in
                 .addLast("ssCheckerReceive", new SSCheckerReceive(method, password))
                 .addLast("ssCipherDecoder", new SSCipherDecoder())
                 .addLast("ssProtocolDecoder", new SSProtocolDecoder())
+                // 流量统计入口，因为ss-in里面会解析出client/server/remote的IP和端口，所以只能在这里统计入口流量
+                .addLast("inFlowStatistics", new InFlowStatisticsHandler(InOutSiteEnum.CLIENT_TO_SERVER.getDirection()))
+                // ss-proxy，在这里Client->Server的数据会转发给Server->Remote
+                .addLast("client2server", new Client2ServerHandler())
                 // 流量统计出口
-                .addLast("outSiteFlowStatistics", new SSOutSiteFlowStatisticsHandler())
-                // 流量统计入口
-                .addLast("inSiteFlowStatistics", new SSInSiteFlowStatisticsHandler())
-                //ss-proxy
-                .addLast("ssTcpProxy", new SSTcpProxyHandler())
-                //ss-out
+                .addLast("outFlowStatistics", new OutFlowStatisticsHandler(InOutSiteEnum.SERVER_TO_CLIENT.getDirection()))
+                // ss-out
                 .addLast("ssCheckerSend", new SSCheckerSend())
                 .addLast("ssCipherEncoder", new SSCipherEncoder())
                 .addLast("ssProtocolEncoder", new SSProtocolEncoder());

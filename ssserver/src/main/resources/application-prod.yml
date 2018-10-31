@@ -4,7 +4,7 @@ logging:
   file: ssserver.log
 spring:
   datasource:
-    url: jdbc:mysql://aliyun.hellozjf.com:3306/springboot?useUnicode=true&characterEncoding=UTF-8
+    url: jdbc:mysql://aliyun.hellozjf.com:3306/springboot?useUnicode=true&characterEncoding=UTF-8&useSSL=false
     driver-class-name: com.mysql.jdbc.Driver
     username: root
     password: Zjf@1234
@@ -13,4 +13,4 @@ spring:
     hibernate:
       ddl-auto: update
 server:
-  port: 8488
+  port: 8888

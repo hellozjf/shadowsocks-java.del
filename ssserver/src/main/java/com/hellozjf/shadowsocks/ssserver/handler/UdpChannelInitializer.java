@@ -1,5 +1,6 @@
 package com.hellozjf.shadowsocks.ssserver.handler;
 
+import com.hellozjf.shadowsocks.ssserver.constant.InOutSiteEnum;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.nio.NioDatagramChannel;
 import lombok.extern.slf4j.Slf4j;
@@ -29,12 +30,12 @@ public class UdpChannelInitializer extends ChannelInitializer<NioDatagramChannel
                 .addLast("ssCheckerReceive", new SSCheckerReceive(method, password, true))
                 .addLast("ssCipherDecoder", new SSCipherDecoder())
                 .addLast("ssProtocolDecoder", new SSProtocolDecoder())
-                // 流量统计出口
-                .addLast("outSiteFlowStatistics", new SSOutSiteFlowStatisticsHandler())
                 // 流量统计入口
-                .addLast("inSiteFlowStatistics", new SSInSiteFlowStatisticsHandler())
+                .addLast("inSiteFlowStatistics", new InFlowStatisticsHandler(InOutSiteEnum.CLIENT_TO_SERVER.getDirection()))
                 //proxy
                 .addLast("ssUdpProxy", new SSUdpProxyHandler())
+                // 流量统计出口
+                .addLast("outSiteFlowStatistics", new OutFlowStatisticsHandler(InOutSiteEnum.SERVER_TO_CLIENT.getDirection()))
                 // out
                 .addLast("ssCheckerSend", new SSCheckerSend())
                 .addLast("ssCipherEncoder", new SSCipherEncoder())

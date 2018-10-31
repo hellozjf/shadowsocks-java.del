@@ -10,12 +10,23 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum InOutSiteEnum {
 
-    CLIENT_TO_SERVER(1, "入站，ss客户端 -> ss服务端"),
-    SERVER_TO_CLIENT(2, "出站，ss服务端 -> ss客户端"),
-    SERVER_TO_REMOTE(3, "出站，ss服务端 -> 远程服务器"),
-    REMOTE_TO_SERVER(4, "入站，远程服务器 -> ss服务端"),
+    CLIENT_TO_SERVER(1, "入站", "client -> server"),
+    SERVER_TO_CLIENT(2, "出站", "server -> client"),
+    SERVER_TO_REMOTE(3, "出站", "server -> remote"),
+    REMOTE_TO_SERVER(4, "入站", "remote -> server"),
     ;
 
     private Integer direction;
-    private String descption;
+    private String inOutDesc;
+    private String detail;
+
+    public static InOutSiteEnum getByDirection(Integer direction) {
+        InOutSiteEnum[] inOutSiteEnums = InOutSiteEnum.values();
+        for (InOutSiteEnum inOutSiteEnum : inOutSiteEnums) {
+            if (inOutSiteEnum.getDirection().equals(direction)) {
+                return inOutSiteEnum;
+            }
+        }
+        return null;
+    }
 }

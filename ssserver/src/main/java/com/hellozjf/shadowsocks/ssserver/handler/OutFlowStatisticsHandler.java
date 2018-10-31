@@ -1,11 +1,5 @@
 package com.hellozjf.shadowsocks.ssserver.handler;
 
-import com.hellozjf.shadowsocks.ssserver.SpringContextUtil;
-import com.hellozjf.shadowsocks.ssserver.constant.InOutSiteEnum;
-import com.hellozjf.shadowsocks.ssserver.constant.ResultEnum;
-import com.hellozjf.shadowsocks.ssserver.constant.SSCommon;
-import com.hellozjf.shadowsocks.ssserver.dataobject.FlowStatisticsDetail;
-import com.hellozjf.shadowsocks.ssserver.exception.ShadowsocksException;
 import com.hellozjf.shadowsocks.ssserver.repository.FlowStatisticsDetailRepository;
 import com.hellozjf.shadowsocks.ssserver.util.ByteBufUtils;
 import com.hellozjf.shadowsocks.ssserver.util.FlowStatisticsDetailRepositoryUtils;
@@ -15,19 +9,19 @@ import io.netty.channel.ChannelOutboundHandlerAdapter;
 import io.netty.channel.ChannelPromise;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.transaction.Transactional;
 import java.net.InetSocketAddress;
-import java.util.Date;
 
 /**
  * @author Jingfeng Zhou
  */
 @Slf4j
-public class SSOutSiteFlowStatisticsHandler extends ChannelOutboundHandlerAdapter {
+public class OutFlowStatisticsHandler extends ChannelOutboundHandlerAdapter {
 
     private FlowStatisticsDetailRepository flowStatisticsDetailRepository;
+    private Integer outType;
 
-    public SSOutSiteFlowStatisticsHandler() {
+    public OutFlowStatisticsHandler(Integer outType) {
+        this.outType = outType;
         // 手动注入FlowStatisticsDetailRepository
         flowStatisticsDetailRepository = FlowStatisticsDetailRepositoryUtils.getFlowStatisticsDetailRepository();
     }
@@ -35,16 +29,31 @@ public class SSOutSiteFlowStatisticsHandler extends ChannelOutboundHandlerAdapte
     @Override
     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
 
-        log.debug("write");
         ByteBuf byteBuf = ByteBufUtils.getByteBufFromMsg(msg);
         if (byteBuf != null) {
             // 统计Client -> Server流量到数据库中
             FlowStatisticsDetailRepositoryUtils.record(ctx,
                     byteBuf,
                     flowStatisticsDetailRepository,
-                    InOutSiteEnum.SERVER_TO_CLIENT.getDirection());
+                    outType);
         }
 
         ctx.write(msg, promise);
+    }
+
+    /**
+     * 捕获出站的异常
+     * @param ctx
+     * @param cause
+     * @throws Exception
+     */
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        InetSocketAddress localAddress = (InetSocketAddress) ctx.channel().localAddress();
+        InetSocketAddress remoteAddress = (InetSocketAddress) ctx.channel().remoteAddress();
+        log.warn("{}:{} -> {}:{} cause {}",
+                localAddress.getHostString(), localAddress.getPort(),
+                remoteAddress.getHostString(), remoteAddress.getPort(),
+                cause.getMessage());
     }
 }

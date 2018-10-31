@@ -58,10 +58,4 @@ public class SSProtocolDecoder extends MessageToMessageDecoder<ByteBuf> {
         // 将数据包交给下一个handler
         out.add(msg.retain());
     }
-
-    @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        InetSocketAddress clientSender = ctx.channel().attr(SSCommon.CLIENT).get();
-        log.error("client {},error :{}", clientSender.toString(), cause.getMessage());
-    }
 }

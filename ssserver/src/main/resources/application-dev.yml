@@ -11,9 +11,11 @@ spring:
   jpa:
     show-sql: true
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
   h2:
     console:
       enabled: true
+      settings:
+        web-allow-others: true
 server:
-  port: 8488
+  port: 8888
