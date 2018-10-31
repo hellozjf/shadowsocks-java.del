@@ -21,7 +21,7 @@ import java.util.Map;
 )
 @ConfigurationProperties
 @Data
-public class Config {
+public class JsonConfig {
 
     private String server;
     private Integer serverPort;

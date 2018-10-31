@@ -52,7 +52,7 @@ public class TcpChannelInitializer extends ChannelInitializer<NioSocketChannel> 
                 // 流量统计入口，因为ss-in里面会解析出client/server/remote的IP和端口，所以只能在这里统计入口流量
                 .addLast("inFlowStatistics", new InFlowStatisticsHandler(InOutSiteEnum.CLIENT_TO_SERVER.getDirection()))
                 // ss-proxy，在这里Client->Server的数据会转发给Server->Remote
-                .addLast("client2server", new Client2ServerHandler())
+                .addLast("client2server", new Client2ServerTcpHandler())
                 // 流量统计出口
                 .addLast("outFlowStatistics", new OutFlowStatisticsHandler(InOutSiteEnum.SERVER_TO_CLIENT.getDirection()))
                 // ss-out

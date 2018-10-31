@@ -33,7 +33,7 @@ public class UdpChannelInitializer extends ChannelInitializer<NioDatagramChannel
                 // 流量统计入口
                 .addLast("inSiteFlowStatistics", new InFlowStatisticsHandler(InOutSiteEnum.CLIENT_TO_SERVER.getDirection()))
                 //proxy
-                .addLast("ssUdpProxy", new SSUdpProxyHandler())
+                .addLast("ssUdpProxy", new Client2ServerUdpHandler())
                 // 流量统计出口
                 .addLast("outSiteFlowStatistics", new OutFlowStatisticsHandler(InOutSiteEnum.SERVER_TO_CLIENT.getDirection()))
                 // out

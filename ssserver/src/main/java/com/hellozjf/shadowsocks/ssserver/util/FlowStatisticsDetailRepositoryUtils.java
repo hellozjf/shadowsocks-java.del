@@ -36,7 +36,7 @@ public class FlowStatisticsDetailRepositoryUtils {
         InetSocketAddress remoteAddress = channel.attr(SSCommon.REMOTE_DES).get();
 
         flowStatisticsDetail.setDirection(direction);
-        flowStatisticsDetail.setFlowSize(byteBuf.readableBytes());
+        flowStatisticsDetail.setFlowSize(Long.valueOf(byteBuf.readableBytes()));
         byte[] content = new byte[byteBuf.readableBytes()];
         byteBuf.getBytes(byteBuf.readerIndex(), content);
         flowStatisticsDetail.setContent(content);

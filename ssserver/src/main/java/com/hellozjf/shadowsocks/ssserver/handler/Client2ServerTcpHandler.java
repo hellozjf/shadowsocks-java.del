@@ -20,7 +20,7 @@ import java.util.ListIterator;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
-public class Client2ServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
+public class Client2ServerTcpHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
     private Channel clientServerChannel;
     private Channel serverRemoteChannel;
@@ -32,7 +32,7 @@ public class Client2ServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
     private FlowStatisticsDetailRepository flowStatisticsDetailRepository;
 
-    public Client2ServerHandler() {
+    public Client2ServerTcpHandler() {
         // 手动注入FlowStatisticsDetailRepository
         flowStatisticsDetailRepository = FlowStatisticsDetailRepositoryUtils.getFlowStatisticsDetailRepository();
     }

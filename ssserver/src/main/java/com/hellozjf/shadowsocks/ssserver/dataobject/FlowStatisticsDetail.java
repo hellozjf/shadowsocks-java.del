@@ -22,7 +22,7 @@ public class FlowStatisticsDetail extends BaseEntity {
     /**
      * 入/出站的流量
      */
-    private Integer flowSize;
+    private Long flowSize;
 
     /**
      * Client所访问的SS服务端地址

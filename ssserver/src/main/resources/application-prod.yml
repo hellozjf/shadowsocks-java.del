@@ -14,3 +14,6 @@ spring:
       ddl-auto: update
 server:
   port: 8888
+custom:
+  min-port: 10000
+  max-port: 10100
