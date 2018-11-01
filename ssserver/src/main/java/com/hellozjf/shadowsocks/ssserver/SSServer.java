@@ -5,6 +5,7 @@ import com.hellozjf.shadowsocks.ssserver.dataobject.UserInfo;
 import com.hellozjf.shadowsocks.ssserver.handler.TcpChannelInitializer;
 import com.hellozjf.shadowsocks.ssserver.handler.UdpChannelInitializer;
 import com.hellozjf.shadowsocks.ssserver.repository.UserInfoRepository;
+import com.hellozjf.shadowsocks.ssserver.util.ProcessUtils;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
@@ -17,6 +18,7 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import lombok.Data;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -33,6 +35,9 @@ public class SSServer {
 
     @Autowired
     private UserInfoRepository userInfoRepository;
+
+    @Autowired
+    private ProcessUtils processUtils;
 
     @Getter
     private Map<Integer, TcpAndUdpChannel> portChannelMap = new ConcurrentHashMap<>();
@@ -109,11 +114,23 @@ public class SSServer {
             Integer port = userInfo.getPort();
             String password = userInfo.getPassword();
             String method = userInfo.getMethod();
-            try {
-                startSingle(server, port, password, method);
-            } catch (Exception e) {
-                // TODO 这是个严重的错误，端口启动失败，用户就会无法使用这个服务，那么应该要将占用该端口的进程杀掉，再次尝试启动端口
-                log.error("启动端口{}失败", port);
+            while (true) {
+                try {
+                    // 只有服务端口都启动成功才行
+                    startSingle(server, port, password, method);
+                    break;
+                } catch (Exception e) {
+                    log.info("端口{}被占用了，即将杀死占用端口的进程", port);
+                    try {
+                        String pid = processUtils.getPID(String.valueOf(port));
+                        processUtils.killPID(pid);
+                    } catch (Exception unknownException) {
+                        // 这里报错一定是哪里出问题了，那么对不起，我要结束程序
+                        log.error("unknownException = {}", unknownException);
+                        System.exit(-1);
+                    }
+                    log.info("占用端口的进程已被杀死，即将重新启动端口");
+                }
             }
         }
     }

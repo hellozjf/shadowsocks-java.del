@@ -13,4 +13,5 @@ import org.springframework.stereotype.Component;
 public class CustomConfig {
     private Integer minPort;
     private Integer maxPort;
+    private Integer runtimeCallTimeout;
 }
