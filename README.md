@@ -4,11 +4,13 @@
 - [x] 整合springboot
 - [x] 整合h2/mysql
 - [x] 流量监控，存入flow_statistics_detail表
+- [ ] 流量统计，存入flow_summary表
 - [ ] 流量控制
-- [ ] 动态添加/删除用户
+- [x] 动态添加/删除用户
 - [ ] 代码美化
 - [ ] 代码性能优化
 - [ ] web控制端
+- [ ] docker
 
 ## 程序初始化
 默认新增一个叫admin的用户，密码123456，端口8388
