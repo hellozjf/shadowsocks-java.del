@@ -21,6 +21,7 @@ public class FlowSummary extends BaseEntity {
         quarterInFlowSummary = 0L;
         quarterOutFlowSummary = 0L;
         yearInFlowSummary = 0L;
+        yearOutFlowSummary = 0L;
         y1OutFlowSummary = 0L;
         h24InFlowSummary = 0L;
         h24OutFlowSummary = 0L;
