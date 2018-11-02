@@ -2,8 +2,10 @@ package com.hellozjf.shadowsocks.ssserver.controller;
 
 import com.hellozjf.shadowsocks.ssserver.constant.ResultEnum;
 import com.hellozjf.shadowsocks.ssserver.dataobject.FlowSummary;
+import com.hellozjf.shadowsocks.ssserver.dataobject.UserInfo;
 import com.hellozjf.shadowsocks.ssserver.exception.ShadowsocksException;
 import com.hellozjf.shadowsocks.ssserver.service.IFlowSummerService;
+import com.hellozjf.shadowsocks.ssserver.service.IUserInfoService;
 import com.hellozjf.shadowsocks.ssserver.util.ResultUtils;
 import com.hellozjf.shadowsocks.ssserver.vo.ResultVO;
 import lombok.extern.slf4j.Slf4j;
@@ -12,6 +14,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Jingfeng Zhou
@@ -24,14 +29,22 @@ public class FlowSummaryController {
     @Autowired
     private IFlowSummerService flowSummerService;
 
+    @Autowired
+    private IUserInfoService userInfoService;
+
     /**
      * 获取所有用户流量信息
      * @return
      */
     @GetMapping("/")
     public ResultVO get() {
-        // TODO 获取所有用户流量信息
-        return null;
+        List<UserInfo> userInfoList = userInfoService.findAll();
+        List<FlowSummary> flowSummaryList = new ArrayList<>();
+        for (UserInfo userInfo : userInfoList) {
+            FlowSummary flowSummary = flowSummerService.findByUserInfoId(userInfo.getId());
+            flowSummaryList.add(flowSummary);
+        }
+        return ResultUtils.success(flowSummaryList);
     }
 
     @GetMapping("/{userInfoId}")

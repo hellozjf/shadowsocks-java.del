@@ -43,7 +43,7 @@ public class ProcessUtils {
     private void killWindowsPID(String pid) throws Exception {
         Process process = Runtime.getRuntime().exec("taskkill /F /PID " + pid);
         BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream(), "GBK"));
-        ExecutorService executorService = Executors.newFixedThreadPool(1);
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
         TimeLimiter timeLimiter = SimpleTimeLimiter.create(executorService);
         waitKillReturn(process, br, timeLimiter);
     }
@@ -51,7 +51,7 @@ public class ProcessUtils {
     private void killLinuxPID(String pid) throws Exception {
         Process process = Runtime.getRuntime().exec("kill -9 " + pid);
         BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
-        ExecutorService executorService = Executors.newFixedThreadPool(1);
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
         TimeLimiter timeLimiter = SimpleTimeLimiter.create(executorService);
         waitKillReturn(process, br, timeLimiter);
     }
@@ -95,7 +95,7 @@ public class ProcessUtils {
             Runtime runtime = Runtime.getRuntime();
             process = runtime.exec(cmd);
             BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream(), "GBK"));
-            ExecutorService executorService = Executors.newFixedThreadPool(1);
+            ExecutorService executorService = Executors.newSingleThreadExecutor();
             TimeLimiter timeLimiter = SimpleTimeLimiter.create(executorService);
             String line = null;
             while ((line = timeLimiter.callWithTimeout(br::readLine, customConfig.getRuntimeCallTimeout(), TimeUnit.SECONDS)) != null) {
@@ -130,7 +130,7 @@ public class ProcessUtils {
             Runtime runtime = Runtime.getRuntime();
             process = runtime.exec(cmd);
             BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            ExecutorService executorService = Executors.newFixedThreadPool(1);
+            ExecutorService executorService = Executors.newSingleThreadExecutor();
             TimeLimiter timeLimiter = SimpleTimeLimiter.create(executorService);
             String line = null;
             while ((line = timeLimiter.callWithTimeout(br::readLine, customConfig.getRuntimeCallTimeout(), TimeUnit.SECONDS)) != null) {

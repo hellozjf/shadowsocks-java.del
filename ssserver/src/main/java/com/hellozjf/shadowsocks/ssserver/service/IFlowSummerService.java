@@ -7,4 +7,5 @@ import com.hellozjf.shadowsocks.ssserver.dataobject.FlowSummary;
  */
 public interface IFlowSummerService {
     FlowSummary findByUserInfoId(Long userInfoId);
+    FlowSummary findAll();
 }

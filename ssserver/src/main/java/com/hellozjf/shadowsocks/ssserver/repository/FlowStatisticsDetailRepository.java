@@ -25,9 +25,10 @@ public interface FlowStatisticsDetailRepository extends JpaRepository<FlowStatis
                     "from FlowStatisticsDetail " +
                     "where ?1 <= gmtCreate " +
                     "and gmtCreate < ?2 " +
-                    "and direction = ?3"
+                    "and direction = ?3 " +
+                    "and serverPort = ?4"
     )
-    Long findSumFlowSizeByGmtCreateAndAndDirection(Date gmtCreateStart, Date gmtCreateEnd, Integer direction);
+    Long findSumFlowSizeByGmtCreateAndAndDirectionAndServerPort(Date gmtCreateStart, Date gmtCreateEnd, Integer direction, Integer serverPort);
 
     /**
      * 通过开始时间，结束时间，多个方向来获取总流量
@@ -41,7 +42,8 @@ public interface FlowStatisticsDetailRepository extends JpaRepository<FlowStatis
                     "from FlowStatisticsDetail " +
                     "where ?1 <= gmtCreate " +
                     "and gmtCreate < ?2 " +
-                    "and direction in ?3"
+                    "and direction in ?3 " +
+                    "and serverPort = ?4"
     )
-    Long findSumFlowSizeByGmtCreateAndAndDirections(Date gmtCreateStart, Date gmtCreateEnd, List<Integer> directions);
+    Long findSumFlowSizeByGmtCreateAndAndDirectionsAndServerPort(Date gmtCreateStart, Date gmtCreateEnd, List<Integer> directions, Integer serverPort);
 }
