@@ -19,3 +19,5 @@ custom:
   max-port: 10100
   # 通过Runtime.exec超时时间，单位秒
   runtime-call-timeout: 2
+  # 时区
+  timeZone: +08:00

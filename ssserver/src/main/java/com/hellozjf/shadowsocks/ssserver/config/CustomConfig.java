@@ -14,4 +14,6 @@ public class CustomConfig {
     private Integer minPort;
     private Integer maxPort;
     private Integer runtimeCallTimeout;
+    private String timeZone;
+    private Integer dayOfWeek;
 }

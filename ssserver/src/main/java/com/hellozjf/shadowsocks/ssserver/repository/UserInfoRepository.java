@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 /**
  * @author Jingfeng Zhou
  */
-public interface UserInfoRepository extends JpaRepository<UserInfo, Long> {
+public interface UserInfoRepository extends JpaRepository<UserInfo, String> {
     UserInfo findByUsername(String username);
     UserInfo findByEmail(String email);
     UserInfo findByPhone(String phone);

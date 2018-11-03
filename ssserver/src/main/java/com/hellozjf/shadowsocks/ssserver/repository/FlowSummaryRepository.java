@@ -6,6 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 /**
  * @author Jingfeng Zhou
  */
-public interface FlowSummaryRepository extends JpaRepository<FlowSummary, Long> {
-    FlowSummary findByUserInfoId(Long userInfoId);
+public interface FlowSummaryRepository extends JpaRepository<FlowSummary, String> {
+    FlowSummary findByUserInfoId(String userInfoId);
 }

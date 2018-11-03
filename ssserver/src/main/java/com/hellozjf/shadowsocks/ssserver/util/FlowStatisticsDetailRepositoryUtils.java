@@ -37,9 +37,10 @@ public class FlowStatisticsDetailRepositoryUtils {
 
         flowStatisticsDetail.setDirection(direction);
         flowStatisticsDetail.setFlowSize(Long.valueOf(byteBuf.readableBytes()));
-        byte[] content = new byte[byteBuf.readableBytes()];
-        byteBuf.getBytes(byteBuf.readerIndex(), content);
-        flowStatisticsDetail.setContent(content);
+        // TODO 先不要记录数据，否则我的vultr.hellozjf.com存储空间不够用了，以后再想办法存储数据
+//        byte[] content = new byte[byteBuf.readableBytes()];
+//        byteBuf.getBytes(byteBuf.readerIndex(), content);
+//        flowStatisticsDetail.setContent(content);
         flowStatisticsDetail.setServerAddress(localAddress.getHostString());
         flowStatisticsDetail.setServerPort(localAddress.getPort());
         flowStatisticsDetail.setClientHost(clientAddress.getHostString());

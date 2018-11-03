@@ -11,7 +11,7 @@ import java.util.List;
 /**
  * @author Jingfeng Zhou
  */
-public interface FlowStatisticsDetailRepository extends JpaRepository<FlowStatisticsDetail, Long> {
+public interface FlowStatisticsDetailRepository extends JpaRepository<FlowStatisticsDetail, String> {
 
     /**
      * 通过开始时间，结束时间，方向来获取总流量
@@ -23,12 +23,11 @@ public interface FlowStatisticsDetailRepository extends JpaRepository<FlowStatis
     @Query(
             "select sum(flowSize) " +
                     "from FlowStatisticsDetail " +
-                    "where ?1 <= gmtCreate " +
-                    "and gmtCreate < ?2 " +
-                    "and direction = ?3 " +
-                    "and serverPort = ?4"
+                    "where ?1 <= gmtCreate and gmtCreate < ?2 " +
+                    "   and direction = ?3 " +
+                    "   and serverPort = ?4"
     )
-    Long findSumFlowSizeByGmtCreateAndAndDirectionAndServerPort(Date gmtCreateStart, Date gmtCreateEnd, Integer direction, Integer serverPort);
+    Long findSumFlowSizeByGmtCreateAndDirectionAndServerPort(Long gmtCreateStart, Long gmtCreateEnd, Integer direction, Integer serverPort);
 
     /**
      * 通过开始时间，结束时间，多个方向来获取总流量
@@ -40,10 +39,24 @@ public interface FlowStatisticsDetailRepository extends JpaRepository<FlowStatis
     @Query(
             "select sum(flowSize) " +
                     "from FlowStatisticsDetail " +
-                    "where ?1 <= gmtCreate " +
-                    "and gmtCreate < ?2 " +
-                    "and direction in ?3 " +
-                    "and serverPort = ?4"
+                    "where ?1 <= gmtCreate and gmtCreate < ?2 " +
+                    "   and direction in ?3 " +
+                    "   and serverPort = ?4"
     )
-    Long findSumFlowSizeByGmtCreateAndAndDirectionsAndServerPort(Date gmtCreateStart, Date gmtCreateEnd, List<Integer> directions, Integer serverPort);
+    Long findSumFlowSizeByGmtCreateAndDirectionsAndServerPort(Long gmtCreateStart, Long gmtCreateEnd, List<Integer> directions, Integer serverPort);
+
+    /**
+     * 通过开始时间，结束时间，多个方向来获取总流量
+     * @param gmtCreateStart
+     * @param gmtCreateEnd
+     * @param directions
+     * @return
+     */
+    @Query(
+            "select sum(flowSize) " +
+                    "from FlowStatisticsDetail " +
+                    "where ?1 <= gmtCreate and gmtCreate < ?2 " +
+                    "   and direction in ?3"
+    )
+    Long findSumFlowSizeByGmtCreateAndDirections(Long gmtCreateStart, Long gmtCreateEnd, List<Integer> directions);
 }

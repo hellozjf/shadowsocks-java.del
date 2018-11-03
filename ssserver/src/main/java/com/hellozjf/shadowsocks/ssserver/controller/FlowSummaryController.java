@@ -9,11 +9,9 @@ import com.hellozjf.shadowsocks.ssserver.service.IUserInfoService;
 import com.hellozjf.shadowsocks.ssserver.util.ResultUtils;
 import com.hellozjf.shadowsocks.ssserver.vo.ResultVO;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.annotations.Parameter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,7 +35,7 @@ public class FlowSummaryController {
      * @return
      */
     @GetMapping("/")
-    public ResultVO get() {
+    public ResultVO getAll() {
         List<UserInfo> userInfoList = userInfoService.findAll();
         List<FlowSummary> flowSummaryList = new ArrayList<>();
         for (UserInfo userInfo : userInfoList) {
@@ -48,7 +46,8 @@ public class FlowSummaryController {
     }
 
     @GetMapping("/{userInfoId}")
-    public ResultVO get(@PathVariable("userInfoId") Long userInfoId) {
+    public ResultVO get(@PathVariable("userInfoId") String userInfoId,
+                        @RequestParam(name = "timeZone", defaultValue = "${custom.timeZone}") String timeZone) {
         FlowSummary flowSummary = flowSummerService.findByUserInfoId(userInfoId);
         if (flowSummary == null) {
             throw new ShadowsocksException(ResultEnum.CAN_NOT_FIND_THIS_ID_OBJECT);

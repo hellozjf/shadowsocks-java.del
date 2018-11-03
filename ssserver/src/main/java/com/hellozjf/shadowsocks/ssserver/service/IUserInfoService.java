@@ -9,8 +9,8 @@ import java.util.List;
  */
 public interface IUserInfoService {
     List<UserInfo> findAll();
-    UserInfo findById(Long id);
+    UserInfo findById(String id);
     UserInfo save(UserInfo userInfo);
-    void delete(Long id);
-    UserInfo put(Long id, UserInfo userInfo);
+    void delete(String id);
+    UserInfo update(String id, UserInfo userInfo);
 }

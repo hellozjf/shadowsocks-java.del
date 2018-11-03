@@ -39,7 +39,7 @@ public class UserInfoServiceImpl implements IUserInfoService {
     }
 
     @Override
-    public UserInfo findById(Long id) {
+    public UserInfo findById(String id) {
         UserInfo userInfo = userInfoRepository.findById(id).orElse(null);
         if (userInfo == null) {
             throw new ShadowsocksException(ResultEnum.CAN_NOT_FIND_THIS_ID_OBJECT);
@@ -68,7 +68,7 @@ public class UserInfoServiceImpl implements IUserInfoService {
     }
 
     @Override
-    public void delete(Long id) {
+    public void delete(String id) {
 
         // 先找找看id对应的userInfo是否存在
         UserInfo userInfo = userInfoRepository.findById(id).orElse(null);
@@ -82,7 +82,7 @@ public class UserInfoServiceImpl implements IUserInfoService {
     }
 
     @Override
-    public UserInfo put(Long id, UserInfo userInfo) {
+    public UserInfo update(String id, UserInfo userInfo) {
 
         // 先找找看id对应的userInfo是否存在
         if (userInfoRepository.findById(id).orElse(null) == null) {
@@ -157,7 +157,7 @@ public class UserInfoServiceImpl implements IUserInfoService {
             // email重复了
             throw new ShadowsocksException(ResultEnum.DUPLICATE_EMAIL);
         }
-        if (userInfo.getPhone() != null && userInfoRepository.findByEmail(userInfo.getPhone()) != null) {
+        if (userInfo.getPhone() != null && userInfoRepository.findByPhone(userInfo.getPhone()) != null) {
             // phone重复了
             throw new ShadowsocksException(ResultEnum.DUPLICATE_PHONE);
         }

@@ -24,3 +24,7 @@ custom:
   max-port: 10100
   # 通过Runtime.exec超时时间，单位秒
   runtime-call-timeout: 2
+  # 时区
+  time-zone: +08:00
+  # 一周从哪天开始，1为周一，2为周二，……，7为周日
+  day-of-week: 1

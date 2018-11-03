@@ -34,7 +34,7 @@ public class UserInfoController {
      * @return
      */
     @GetMapping("/{id}")
-    public ResultVO get(@PathVariable("id") Long id) {
+    public ResultVO get(@PathVariable("id") String id) {
         return ResultUtils.success(userInfoService.findById(id));
     }
 
@@ -54,7 +54,7 @@ public class UserInfoController {
      * @return
      */
     @DeleteMapping("/{id}")
-    public ResultVO delete(@PathVariable("id") Long id) {
+    public ResultVO delete(@PathVariable("id") String id) {
         userInfoService.delete(id);
         return ResultUtils.success();
     }
@@ -66,7 +66,7 @@ public class UserInfoController {
      * @return
      */
     @PutMapping("/{id}")
-    public ResultVO put(@PathVariable("id") Long id, UserInfo userInfo) {
-        return ResultUtils.success(userInfoService.put(id, userInfo));
+    public ResultVO put(@PathVariable("id") String id, UserInfo userInfo) {
+        return ResultUtils.success(userInfoService.update(id, userInfo));
     }
 }
