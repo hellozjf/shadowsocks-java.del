@@ -13,6 +13,16 @@ import java.util.List;
  */
 public interface FlowStatisticsDetailRepository extends JpaRepository<FlowStatisticsDetail, String> {
 
+    FlowStatisticsDetail findTopByServerPortOrderByGmtCreateAsc(Integer serverPort);
+
+    @Query(
+            "select new FlowStatisticsDetail(serverPort, direction, sum(flowSize)) " +
+                    "from FlowStatisticsDetail " +
+                    "where ?1 <= gmtCreate and gmtCreate < ?2 " +
+                    "group by serverPort, direction"
+    )
+    List<FlowStatisticsDetail> findByGmtCreateGtLtGroupByServerPortAndDirection(Long gmtCreateStart, Long gmtCreateEnd);
+
     /**
      * 通过开始时间，结束时间，方向来获取总流量
      * @param gmtCreateStart
@@ -23,11 +33,11 @@ public interface FlowStatisticsDetailRepository extends JpaRepository<FlowStatis
     @Query(
             "select sum(flowSize) " +
                     "from FlowStatisticsDetail " +
-                    "where ?1 <= gmtCreate and gmtCreate < ?2 " +
-                    "   and direction = ?3 " +
-                    "   and serverPort = ?4"
+                    "where serverPort = ?1 " +
+                    "   and direction = ?2 " +
+                    "   and ?3 <= gmtCreate and gmtCreate < ?4"
     )
-    Long findSumFlowSizeByGmtCreateAndDirectionAndServerPort(Long gmtCreateStart, Long gmtCreateEnd, Integer direction, Integer serverPort);
+    Long findSumFlowSizeByGmtCreateAndDirectionAndServerPort(Integer serverPort, Integer direction, Long gmtCreateStart, Long gmtCreateEnd);
 
     /**
      * 通过开始时间，结束时间，多个方向来获取总流量
@@ -39,11 +49,11 @@ public interface FlowStatisticsDetailRepository extends JpaRepository<FlowStatis
     @Query(
             "select sum(flowSize) " +
                     "from FlowStatisticsDetail " +
-                    "where ?1 <= gmtCreate and gmtCreate < ?2 " +
-                    "   and direction in ?3 " +
-                    "   and serverPort = ?4"
+                    "where serverPort = ?1 " +
+                    "   and direction in ?2 " +
+                    "   and ?3 <= gmtCreate and gmtCreate < ?4"
     )
-    Long findSumFlowSizeByGmtCreateAndDirectionsAndServerPort(Long gmtCreateStart, Long gmtCreateEnd, List<Integer> directions, Integer serverPort);
+    Long findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(Integer serverPort, List<Integer> directions, Long gmtCreateStart, Long gmtCreateEnd);
 
     /**
      * 通过开始时间，结束时间，多个方向来获取总流量
@@ -55,8 +65,8 @@ public interface FlowStatisticsDetailRepository extends JpaRepository<FlowStatis
     @Query(
             "select sum(flowSize) " +
                     "from FlowStatisticsDetail " +
-                    "where ?1 <= gmtCreate and gmtCreate < ?2 " +
-                    "   and direction in ?3"
+                    "where direction in ?1 " +
+                    "   and ?2 <= gmtCreate and gmtCreate < ?3"
     )
-    Long findSumFlowSizeByGmtCreateAndDirections(Long gmtCreateStart, Long gmtCreateEnd, List<Integer> directions);
+    Long findSumFlowSizeByDirectionsAndGmtCreate(List<Integer> directions, Long gmtCreateStart, Long gmtCreateEnd);
 }

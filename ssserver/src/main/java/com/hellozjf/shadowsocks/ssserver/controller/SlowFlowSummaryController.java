@@ -20,8 +20,8 @@ import java.util.List;
  */
 @Slf4j
 @RestController
-@RequestMapping("/flowSummary")
-public class FlowSummaryController {
+@RequestMapping("/slowFlowSummary")
+public class SlowFlowSummaryController {
 
     @Autowired
     private IFlowSummaryService flowSummerService;
@@ -31,11 +31,14 @@ public class FlowSummaryController {
 
     /**
      * 获取所有流量汇总信息
+     * @param timeZone
+     * @param dayOfWeek
      * @return
      */
     @GetMapping("/")
-    public ResultVO getAllSummary() {
-        FlowSummary flowSummary = flowSummerService.findAllRecent();
+    public ResultVO getAllSummary(@RequestParam(name = "timeZone", defaultValue = "${custom.time-zone}") String timeZone,
+                                  @RequestParam(name = "dayOfWeek", defaultValue = "${custom.day-of-week}") Integer dayOfWeek) {
+        FlowSummary flowSummary = flowSummerService.findAll(timeZone, dayOfWeek);
         return ResultUtils.success(flowSummary);
     }
 
@@ -44,11 +47,12 @@ public class FlowSummaryController {
      * @return
      */
     @GetMapping("/allUsers")
-    public ResultVO getAllUsers() {
+    public ResultVO getAllUsers(@RequestParam(name = "timeZone", defaultValue = "${custom.time-zone}") String timeZone,
+                           @RequestParam(name = "dayOfWeek", defaultValue = "${custom.day-of-week}") Integer dayOfWeek) {
         List<UserInfo> userInfoList = userInfoService.findAll();
         List<FlowSummary> flowSummaryList = new ArrayList<>();
         for (UserInfo userInfo : userInfoList) {
-            FlowSummary flowSummary = flowSummerService.findRecentUserInfoByUserInfoId(userInfo.getId());
+            FlowSummary flowSummary = flowSummerService.findByUserInfoId(timeZone, dayOfWeek, userInfo.getId());
             flowSummaryList.add(flowSummary);
         }
         return ResultUtils.success(flowSummaryList);
@@ -56,12 +60,16 @@ public class FlowSummaryController {
 
     /**
      * 获取单个用户的流量信息
+     * @param timeZone
+     * @param dayOfWeek
      * @param userInfoId
      * @return
      */
     @GetMapping("/{userInfoId}")
-    public ResultVO get(@PathVariable("userInfoId") String userInfoId) {
-        FlowSummary flowSummary = flowSummerService.findRecentUserInfoByUserInfoId(userInfoId);
+    public ResultVO get(@RequestParam(name = "timeZone", defaultValue = "${custom.time-zone}") String timeZone,
+                        @RequestParam(name = "dayOfWeek", defaultValue = "${custom.day-of-week}") Integer dayOfWeek,
+                        @PathVariable("userInfoId") String userInfoId) {
+        FlowSummary flowSummary = flowSummerService.findByUserInfoId(timeZone, dayOfWeek, userInfoId);
         if (flowSummary == null) {
             throw new ShadowsocksException(ResultEnum.CAN_NOT_FIND_THIS_ID_OBJECT);
         } else {

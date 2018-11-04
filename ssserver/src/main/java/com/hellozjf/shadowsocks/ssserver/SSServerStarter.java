@@ -1,5 +1,6 @@
 package com.hellozjf.shadowsocks.ssserver;
 
+import com.hellozjf.shadowsocks.ssserver.service.IFlowSummaryService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -24,8 +25,11 @@ public class SSServerStarter {
     }
 
     @Bean
-    public CommandLineRunner commandLineRunner(SSServer ssServer) {
+    public CommandLineRunner commandLineRunner(IFlowSummaryService flowSummaryService, SSServer ssServer) {
         return args -> {
+            // 首先通过flowStatistics表初始化flowSummary表
+            flowSummaryService.initFlowSummary();
+            // 然后才能启动服务器
             ssServer.start();
         };
     }

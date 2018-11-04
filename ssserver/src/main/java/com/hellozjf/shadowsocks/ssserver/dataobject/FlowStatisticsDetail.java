@@ -3,7 +3,9 @@ package com.hellozjf.shadowsocks.ssserver.dataobject;
 import lombok.Data;
 
 import javax.persistence.Entity;
+import javax.persistence.Index;
 import javax.persistence.Lob;
+import javax.persistence.Table;
 
 /**
  * @author Jingfeng Zhou
@@ -12,7 +14,21 @@ import javax.persistence.Lob;
  */
 @Data
 @Entity
+@Table(indexes = {
+        @Index(name = "userFlowSummary", columnList = "serverPort, direction, gmtCreate"),
+        @Index(name = "allFlowSummary", columnList = "direction, gmtCreate"),
+        @Index(name = "minuteFlowSummary", columnList = "gmtCreate"),
+        @Index(name = "portCreateTime", columnList = "serverPort, gmtCreate")
+})
 public class FlowStatisticsDetail extends BaseEntity {
+
+    public FlowStatisticsDetail() {}
+
+    public FlowStatisticsDetail(Integer serverPort, Integer direction, Long flowSize) {
+        this.serverPort = serverPort;
+        this.direction = direction;
+        this.flowSize = flowSize;
+    }
 
     /**
      * 方向，@See com.hellozjf.shadowsocks.ssserver.constant.InOutSiteEnum
