@@ -30,3 +30,4 @@
 /ssserver.log*
 /ssserver/ssserver.*.db
 /ssserver/ssserver.log*
+/shadowsocks/
