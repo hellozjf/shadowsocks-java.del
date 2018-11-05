@@ -21,7 +21,7 @@ server:
   port: 8888
 custom:
   min-port: 10000
-  max-port: 10100
+  max-port: 10101
   # 通过Runtime.exec超时时间，单位秒
   runtime-call-timeout: 2
   # 时区
