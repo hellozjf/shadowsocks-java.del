@@ -3,7 +3,7 @@ package com.hellozjf.shadowsocks.ssserver.service.impl;
 import com.hellozjf.shadowsocks.ssserver.dataobject.FlowStatisticsDetail;
 import com.hellozjf.shadowsocks.ssserver.repository.FlowStatisticsDetailRepository;
 import com.hellozjf.shadowsocks.ssserver.service.IFlowStatisticsDetailService;
-import com.hellozjf.shadowsocks.ssserver.vo.ClientIpInfo;
+import com.hellozjf.shadowsocks.ssserver.vo.ClientIpInfoVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -28,14 +28,14 @@ public class FlowStatisticsDetailServiceImpl implements IFlowStatisticsDetailSer
     }
 
     @Override
-    public List<ClientIpInfo> getAllClientIpInfoList() {
+    public List<ClientIpInfoVO> getAllClientIpInfoList() {
         List<String> allIpList = flowStatisticsDetailRepository.findAllIpList();
         log.debug("allIpList = {}", allIpList);
         return getClientIpInfoListByIpList(allIpList);
     }
 
     @Override
-    public List<ClientIpInfo> getAllClientIpInfoListByServerPort(Integer serverPort) {
+    public List<ClientIpInfoVO> getAllClientIpInfoListByServerPort(Integer serverPort) {
         List<String> allIpList = flowStatisticsDetailRepository.findAllIpListByServerPort(serverPort);
         log.debug("allIpList = {}", allIpList);
         return getClientIpInfoListByIpList(allIpList);
@@ -46,11 +46,11 @@ public class FlowStatisticsDetailServiceImpl implements IFlowStatisticsDetailSer
      * @param allIpList
      * @return
      */
-    private List<ClientIpInfo> getClientIpInfoListByIpList(List<String> allIpList) {
-        List<ClientIpInfo> allClientIpInfoList = new ArrayList<>();
+    private List<ClientIpInfoVO> getClientIpInfoListByIpList(List<String> allIpList) {
+        List<ClientIpInfoVO> allClientIpInfoList = new ArrayList<>();
         RestTemplate restTemplate = new RestTemplate();
         for (String ip : allIpList) {
-            ClientIpInfo clientIpInfo = restTemplate.getForObject("http://ip-api.com/json/" + ip, ClientIpInfo.class);
+            ClientIpInfoVO clientIpInfo = restTemplate.getForObject("http://ip-api.com/json/" + ip, ClientIpInfoVO.class);
             allClientIpInfoList.add(clientIpInfo);
         }
         return allClientIpInfoList;

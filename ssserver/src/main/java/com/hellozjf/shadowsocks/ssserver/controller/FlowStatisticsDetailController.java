@@ -1,9 +1,12 @@
 package com.hellozjf.shadowsocks.ssserver.controller;
 
 import com.hellozjf.shadowsocks.ssserver.service.IFlowStatisticsDetailService;
-import com.hellozjf.shadowsocks.ssserver.util.ResultUtils;
-import com.hellozjf.shadowsocks.ssserver.vo.ClientIpInfo;
+import com.hellozjf.shadowsocks.ssserver.vo.ClientIpInfoVO;
 import com.hellozjf.shadowsocks.ssserver.vo.ResultVO;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -17,20 +20,29 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/flowStatisticsDetail")
+@Api(tags = "流量统计详情")
 public class FlowStatisticsDetailController {
 
     @Autowired
     private IFlowStatisticsDetailService flowStatisticsDetailService;
 
-    @GetMapping("/getAllClientIpInfo/all")
-    public ResultVO getAllClientIpInfo() {
-        List<ClientIpInfo> clientIpInfoList = flowStatisticsDetailService.getAllClientIpInfoList();
-        return ResultUtils.success(clientIpInfoList);
+    /**
+     * @return
+     */
+    @GetMapping("/getAllClientIpInfo/")
+    @ApiOperation("查询所有端口服务的所有客户IP信息")
+    public ResultVO<List<ClientIpInfoVO>> getAllClientIpInfo() {
+        List<ClientIpInfoVO> clientIpInfoList = flowStatisticsDetailService.getAllClientIpInfoList();
+        return ResultVO.success(clientIpInfoList);
     }
 
     @GetMapping("/getAllClientIpInfo/{serverPort}")
-    public ResultVO getAllClientIpInfo(@PathVariable("serverPort") Integer serverPort) {
-        List<ClientIpInfo> clientIpInfoList = flowStatisticsDetailService.getAllClientIpInfoListByServerPort(serverPort);
-        return ResultUtils.success(clientIpInfoList);
+    @ApiOperation("查询特定端口服务的所有客户IP信息")
+    @ApiImplicitParams(
+            @ApiImplicitParam(name = "serverPort", value = "服务端口", required = true, dataType = "Integer", paramType = "path")
+    )
+    public ResultVO<List<ClientIpInfoVO>> getAllClientIpInfo(@PathVariable("serverPort") Integer serverPort) {
+        List<ClientIpInfoVO> clientIpInfoList = flowStatisticsDetailService.getAllClientIpInfoListByServerPort(serverPort);
+        return ResultVO.success(clientIpInfoList);
     }
 }

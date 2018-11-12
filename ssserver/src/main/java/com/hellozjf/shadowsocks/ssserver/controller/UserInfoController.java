@@ -2,11 +2,16 @@ package com.hellozjf.shadowsocks.ssserver.controller;
 
 import com.hellozjf.shadowsocks.ssserver.dataobject.UserInfo;
 import com.hellozjf.shadowsocks.ssserver.service.IUserInfoService;
-import com.hellozjf.shadowsocks.ssserver.util.ResultUtils;
 import com.hellozjf.shadowsocks.ssserver.vo.ResultVO;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * @author Jingfeng Zhou
@@ -14,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 @RestController
 @RequestMapping("/userInfo")
+@Api(tags = "用户信息")
 public class UserInfoController {
 
     @Autowired
@@ -24,8 +30,9 @@ public class UserInfoController {
      * @return
      */
     @GetMapping("/")
-    public ResultVO get() {
-        return ResultUtils.success(userInfoService.findAll());
+    @ApiOperation("获取所有用户信息")
+    public ResultVO<List<UserInfo>> get() {
+        return ResultVO.success(userInfoService.findAll());
     }
 
     /**
@@ -34,8 +41,12 @@ public class UserInfoController {
      * @return
      */
     @GetMapping("/{id}")
-    public ResultVO get(@PathVariable("id") String id) {
-        return ResultUtils.success(userInfoService.findById(id));
+    @ApiOperation("获取单个用户信息")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "id", value = "id", required = true, dataType = "Integer", paramType = "path")
+    })
+    public ResultVO<UserInfo> get(@PathVariable("id") String id) {
+        return ResultVO.success(userInfoService.findById(id));
     }
 
     /**
@@ -44,8 +55,12 @@ public class UserInfoController {
      * @return
      */
     @PostMapping("/")
-    public ResultVO post(UserInfo userInfo) {
-        return ResultUtils.success(userInfoService.save(userInfo));
+    @ApiOperation("新增一个用户")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "userInfo", value = "用户信息", required = true, dataType = "UserInfo", paramType = "query")
+    })
+    public ResultVO<UserInfo> post(UserInfo userInfo) {
+        return ResultVO.success(userInfoService.save(userInfo));
     }
 
     /**
@@ -54,9 +69,13 @@ public class UserInfoController {
      * @return
      */
     @DeleteMapping("/{id}")
+    @ApiOperation("删除一个用户")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "id", value = "id", required = true, dataType = "String", paramType = "path")
+    })
     public ResultVO delete(@PathVariable("id") String id) {
         userInfoService.delete(id);
-        return ResultUtils.success();
+        return ResultVO.success();
     }
 
     /**
@@ -66,7 +85,12 @@ public class UserInfoController {
      * @return
      */
     @PutMapping("/{id}")
-    public ResultVO put(@PathVariable("id") String id, UserInfo userInfo) {
-        return ResultUtils.success(userInfoService.update(id, userInfo));
+    @ApiOperation("更新一个用户")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "id", value = "id", required = true, dataType = "String", paramType = "path"),
+            @ApiImplicitParam(name = "userInfo", value = "用户信息", required = true, dataType = "UserInfo", paramType = "query")
+    })
+    public ResultVO<UserInfo> put(@PathVariable("id") String id, UserInfo userInfo) {
+        return ResultVO.success(userInfoService.update(id, userInfo));
     }
 }

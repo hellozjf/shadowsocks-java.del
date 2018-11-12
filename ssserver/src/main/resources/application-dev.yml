@@ -19,6 +19,8 @@ spring:
         web-allow-others: true
 server:
   port: 8888
+swagger2:
+  enable: true
 custom:
   min-port: 10000
   max-port: 10101

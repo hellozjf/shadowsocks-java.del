@@ -6,8 +6,8 @@ import com.hellozjf.shadowsocks.ssserver.dataobject.UserInfo;
 import com.hellozjf.shadowsocks.ssserver.exception.ShadowsocksException;
 import com.hellozjf.shadowsocks.ssserver.service.IFlowSummaryService;
 import com.hellozjf.shadowsocks.ssserver.service.IUserInfoService;
-import com.hellozjf.shadowsocks.ssserver.util.ResultUtils;
 import com.hellozjf.shadowsocks.ssserver.vo.ResultVO;
+import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -21,7 +21,8 @@ import java.util.List;
 @Slf4j
 @RestController
 @RequestMapping("/slowFlowSummary")
-public class SlowFlowSummaryController {
+@Api(tags = "精确流量汇总")
+public class AccurateFlowSummaryController {
 
     @Autowired
     private IFlowSummaryService flowSummerService;
@@ -36,10 +37,10 @@ public class SlowFlowSummaryController {
      * @return
      */
     @GetMapping("/")
-    public ResultVO getAllSummary(@RequestParam(name = "timeZone", defaultValue = "${custom.time-zone}") String timeZone,
+    public ResultVO<FlowSummary> getAllSummary(@RequestParam(name = "timeZone", defaultValue = "${custom.time-zone}") String timeZone,
                                   @RequestParam(name = "dayOfWeek", defaultValue = "${custom.day-of-week}") Integer dayOfWeek) {
         FlowSummary flowSummary = flowSummerService.findAll(timeZone, dayOfWeek);
-        return ResultUtils.success(flowSummary);
+        return ResultVO.success(flowSummary);
     }
 
     /**
@@ -47,7 +48,7 @@ public class SlowFlowSummaryController {
      * @return
      */
     @GetMapping("/allUsers")
-    public ResultVO getAllUsers(@RequestParam(name = "timeZone", defaultValue = "${custom.time-zone}") String timeZone,
+    public ResultVO<List<FlowSummary>> getAllUsers(@RequestParam(name = "timeZone", defaultValue = "${custom.time-zone}") String timeZone,
                            @RequestParam(name = "dayOfWeek", defaultValue = "${custom.day-of-week}") Integer dayOfWeek) {
         List<UserInfo> userInfoList = userInfoService.findAll();
         List<FlowSummary> flowSummaryList = new ArrayList<>();
@@ -55,7 +56,7 @@ public class SlowFlowSummaryController {
             FlowSummary flowSummary = flowSummerService.findByUserInfoId(timeZone, dayOfWeek, userInfo.getId());
             flowSummaryList.add(flowSummary);
         }
-        return ResultUtils.success(flowSummaryList);
+        return ResultVO.success(flowSummaryList);
     }
 
     /**
@@ -66,14 +67,14 @@ public class SlowFlowSummaryController {
      * @return
      */
     @GetMapping("/{userInfoId}")
-    public ResultVO get(@RequestParam(name = "timeZone", defaultValue = "${custom.time-zone}") String timeZone,
+    public ResultVO<FlowSummary> get(@RequestParam(name = "timeZone", defaultValue = "${custom.time-zone}") String timeZone,
                         @RequestParam(name = "dayOfWeek", defaultValue = "${custom.day-of-week}") Integer dayOfWeek,
                         @PathVariable("userInfoId") String userInfoId) {
         FlowSummary flowSummary = flowSummerService.findByUserInfoId(timeZone, dayOfWeek, userInfoId);
         if (flowSummary == null) {
             throw new ShadowsocksException(ResultEnum.CAN_NOT_FIND_THIS_ID_OBJECT);
         } else {
-            return ResultUtils.success(flowSummary);
+            return ResultVO.success(flowSummary);
         }
     }
 }
