@@ -16,6 +16,19 @@ public interface FlowStatisticsDetailRepository extends JpaRepository<FlowStatis
     FlowStatisticsDetail findTopByServerPortOrderByGmtCreateAsc(Integer serverPort);
 
     @Query(
+            "select distinct clientHost " +
+                    "from FlowStatisticsDetail"
+    )
+    List<String> findAllIpList();
+
+    @Query(
+            "select distinct clientHost " +
+                    "from FlowStatisticsDetail " +
+                    "where serverPort = ?1"
+    )
+    List<String> findAllIpListByServerPort(Integer serverPort);
+
+    @Query(
             "select new FlowStatisticsDetail(serverPort, direction, sum(flowSize)) " +
                     "from FlowStatisticsDetail " +
                     "where ?1 <= gmtCreate and gmtCreate < ?2 " +
