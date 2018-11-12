@@ -21,6 +21,11 @@ public class ResultVO<T> {
     private String msg;
 
     /**
+     * 花费的时间，毫秒为单位
+     */
+    private Long costTime;
+
+    /**
      * 具体的内容.
      */
     private T data;

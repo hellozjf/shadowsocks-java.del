@@ -16,6 +16,7 @@ public enum ResultEnum {
     DUPLICATE_EMAIL(5, "邮箱重复"),
     DUPLICATE_PHONE(6, "手机号码重复"),
     CAN_NOT_ALLOC_SS_SERVER_PORT(7, "无法分配SS服务端口"),
+    METHOD_RUNNING_TIME_ERROR(8, "方法运行时异常"),
     ;
 
     Integer code;
