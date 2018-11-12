@@ -99,15 +99,10 @@ public class ProcessUtils {
             TimeLimiter timeLimiter = SimpleTimeLimiter.create(executorService);
             String line = null;
             while ((line = timeLimiter.callWithTimeout(br::readLine, customConfig.getRuntimeCallTimeout(), TimeUnit.SECONDS)) != null) {
-                if (line.indexOf("0.0.0.0:" + port) != -1) {
-                    String[] lineArray = line.split("\\s+");
-                    pid = lineArray[5].trim();
-                    return pid;
-                } else if (line.indexOf("[::]:" + port) != -1) {
-                    String[] lineArray = line.split("\\s+");
-                    pid = lineArray[5].trim();
-                    return pid;
-                }
+                // 我不管你是0.0.0.0还是[::]还是127.0.0.1，我全杀了，谁让你被我搜出来了
+                String[] lineArray = line.split("\\s+");
+                pid = lineArray[5].trim();
+                return pid;
             }
         } catch (TimeoutException e) {
             // 这是正常的，java的process压根就不会关闭流，所以我只能通过超时来关闭它
@@ -134,15 +129,10 @@ public class ProcessUtils {
             TimeLimiter timeLimiter = SimpleTimeLimiter.create(executorService);
             String line = null;
             while ((line = timeLimiter.callWithTimeout(br::readLine, customConfig.getRuntimeCallTimeout(), TimeUnit.SECONDS)) != null) {
-                if (line.indexOf("0.0.0.0:" + port) != -1) {
-                    String[] lineArray = line.split("\\s+");
-                    pid = lineArray[6].trim().split("/")[0];
-                    return pid;
-                } else if (line.indexOf(":::" + port) != -1) {
-                    String[] lineArray = line.split("\\s+");
-                    pid = lineArray[6].trim().split("/")[0];
-                    return pid;
-                }
+                // 我不管你是0.0.0.0还是[::]还是127.0.0.1，我全杀了，谁让你被我搜出来了
+                String[] lineArray = line.split("\\s+");
+                pid = lineArray[6].trim().split("/")[0];
+                return pid;
             }
         } catch (TimeoutException e) {
             // 这是正常的，java的process压根就不会关闭流，所以我只能通过超时来关闭它
