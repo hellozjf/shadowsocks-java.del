@@ -330,6 +330,7 @@ public class FlowSummaryServiceImpl implements IFlowSummaryService {
     @Transactional(rollbackFor = Exception.class)
     public void updateFlowSummary() {
 
+        // TODO 不知道为什么，两个写锁居然可以同时进入，我居然可以一边更新一边删除，这是重大bug！
         readWriteLock.writeLock().lock();
 
         try {
