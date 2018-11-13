@@ -12,4 +12,5 @@ public interface FlowSummaryRepository extends JpaRepository<FlowSummary, String
     List<FlowSummary> findByRecordMinuteTime(Long recordMinuteTime);
     List<FlowSummary> findByUserInfoIdAndRecordMinuteTimeInOrderByRecordMinuteTimeDesc(String userInfoId, List<Long> recordMinuteTimeList);
     FlowSummary findTopByUserInfoIdOrderByRecordMinuteTimeDesc(String userInfoId);
+    void deleteAllByUserInfoId(String userInfoId);
 }

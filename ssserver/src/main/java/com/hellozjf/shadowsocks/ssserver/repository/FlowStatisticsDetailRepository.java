@@ -14,6 +14,7 @@ import java.util.List;
 public interface FlowStatisticsDetailRepository extends JpaRepository<FlowStatisticsDetail, String> {
 
     FlowStatisticsDetail findTopByServerPortOrderByGmtCreateAsc(Integer serverPort);
+    void deleteAllByServerPort(Integer serverPort);
 
     @Query(
             "select distinct clientHost " +

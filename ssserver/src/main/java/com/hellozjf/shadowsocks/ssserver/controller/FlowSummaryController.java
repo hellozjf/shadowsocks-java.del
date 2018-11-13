@@ -34,7 +34,7 @@ public class FlowSummaryController {
      * 获取所有流量汇总信息
      * @return
      */
-    @GetMapping("/")
+    @GetMapping("/summary")
     public ResultVO getAllSummary() {
         FlowSummary flowSummary = flowSummerService.findAllRecent();
         return ResultUtils.success(flowSummary);
@@ -44,7 +44,7 @@ public class FlowSummaryController {
      * 获取所有用户流量信息
      * @return
      */
-    @GetMapping("/allUsers")
+    @GetMapping("/")
     public ResultVO getAllUsers() {
         List<UserInfo> userInfoList = userInfoService.findAll();
         List<FlowSummary> flowSummaryList = new ArrayList<>();
@@ -76,7 +76,7 @@ public class FlowSummaryController {
      */
     @DeleteMapping("/")
     public ResultVO deleteAll() {
-        flowSummerService.clearFlowSummary();
+        flowSummerService.clearAll();
         return ResultUtils.success();
     }
 }

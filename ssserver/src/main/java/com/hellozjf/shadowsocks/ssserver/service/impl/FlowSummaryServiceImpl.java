@@ -24,7 +24,6 @@ import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * @author Jingfeng Zhou
@@ -34,26 +33,16 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 public class FlowSummaryServiceImpl implements IFlowSummaryService {
 
     @Autowired
-    private FlowStatisticsDetailRepository flowStatisticsDetailRepository;
+    private FlowSummaryRepository flowSummaryRepository;
 
     @Autowired
     private UserInfoRepository userInfoRepository;
 
     @Autowired
-    private FlowSummaryRepository flowSummaryRepository;
+    private FlowStatisticsDetailRepository flowStatisticsDetailRepository;
 
     @Autowired
     private CustomConfig customConfig;
-
-    /**
-     * 使用读写锁来控制FlowSummary表的读写操作
-     * 一个线程在读的时候，另一个线程也可以读
-     * 一个线程在读的时候，另一个线程必须等待该线程读完才能写
-     * 一个线程在写的时候，另一个线程必须等待该线程写完才能进行读写
-     * 所有对数据库的读操作都要加读锁，所有对数据库的写操作都要加写锁
-     * 参考https://blog.csdn.net/liyantianmin/article/details/42829233
-     */
-    private ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
 
     @Override
     public FlowSummary findByUserInfoId(String userInfoId) {
@@ -62,100 +51,100 @@ public class FlowSummaryServiceImpl implements IFlowSummaryService {
 
     @Override
     public FlowSummary findByUserInfoId(String timeZone, Integer dayOfWeek, String userInfoId) {
-        readWriteLock.readLock().lock();
-        try {
-            FlowSummary flowSummary = new FlowSummary();
-            UserInfo userInfo = userInfoRepository.findById(userInfoId).orElse(null);
-            if (userInfo == null) {
-                throw new ShadowsocksException(ResultEnum.CAN_NOT_FIND_THIS_ID_OBJECT);
+        synchronized (flowStatisticsDetailRepository) {
+            synchronized (userInfoRepository) {
+                FlowSummary flowSummary = new FlowSummary();
+                UserInfo userInfo = userInfoRepository.findById(userInfoId).orElse(null);
+                if (userInfo == null) {
+                    throw new ShadowsocksException(ResultEnum.CAN_NOT_FIND_THIS_ID_OBJECT);
+                }
+
+                // 首先获取需要统计的时间戳
+                AllOffsetDateTimes allOffsetDateTimes = new AllOffsetDateTimes(timeZone, dayOfWeek);
+
+                // 构造方向数组
+                List<Integer> inList = Arrays.asList(InOutSiteEnum.CLIENT_TO_SERVER.getDirection(), InOutSiteEnum.REMOTE_TO_SERVER.getDirection());
+                List<Integer> outList = Arrays.asList(InOutSiteEnum.SERVER_TO_CLIENT.getDirection(), InOutSiteEnum.SERVER_TO_REMOTE.getDirection());
+
+                // 计算流量
+                Long thisMinuteInFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), inList, allOffsetDateTimes.getMinuteStartTimeMs(), allOffsetDateTimes.getCurrentTimeMs());
+                Long thisMinuteOutFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), outList, allOffsetDateTimes.getMinuteStartTimeMs(), allOffsetDateTimes.getCurrentTimeMs());
+                Long thisHourInFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), inList, allOffsetDateTimes.getHourStartTimeMs(), allOffsetDateTimes.getCurrentTimeMs());
+                Long thisHourOutFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), outList, allOffsetDateTimes.getHourStartTimeMs(), allOffsetDateTimes.getCurrentTimeMs());
+                Long thisHalfDayInFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), inList, allOffsetDateTimes.getHalfDayStartTimeMs(), allOffsetDateTimes.getCurrentTimeMs());
+                Long thisHalfDayOutFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), outList, allOffsetDateTimes.getHalfDayStartTimeMs(), allOffsetDateTimes.getCurrentTimeMs());
+                Long thisDayInFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), inList, allOffsetDateTimes.getDayStartTimeMs(), allOffsetDateTimes.getCurrentTimeMs());
+                Long thisDayOutFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), outList, allOffsetDateTimes.getDayStartTimeMs(), allOffsetDateTimes.getCurrentTimeMs());
+                Long thisWeekInFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), inList, allOffsetDateTimes.getWeekStartTimeMs(), allOffsetDateTimes.getCurrentTimeMs());
+                Long thisWeekOutFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), outList, allOffsetDateTimes.getWeekStartTimeMs(), allOffsetDateTimes.getCurrentTimeMs());
+                Long thisMonthInFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), inList, allOffsetDateTimes.getMonthStartTimeMs(), allOffsetDateTimes.getCurrentTimeMs());
+                Long thisMonthOutFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), outList, allOffsetDateTimes.getMonthStartTimeMs(), allOffsetDateTimes.getCurrentTimeMs());
+                Long thisQuarterInFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), inList, allOffsetDateTimes.getQuarterStartTimeMs(), allOffsetDateTimes.getCurrentTimeMs());
+                Long thisQuarterOutFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), outList, allOffsetDateTimes.getQuarterStartTimeMs(), allOffsetDateTimes.getCurrentTimeMs());
+                Long thisHalfYearInFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), inList, allOffsetDateTimes.getHalfYearStartTimeMs(), allOffsetDateTimes.getCurrentTimeMs());
+                Long thisHalfYearOutFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), outList, allOffsetDateTimes.getHalfYearStartTimeMs(), allOffsetDateTimes.getCurrentTimeMs());
+                Long thisYearInFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), inList, allOffsetDateTimes.getYearStartTimeMs(), allOffsetDateTimes.getCurrentTimeMs());
+                Long thisYearOutFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), outList, allOffsetDateTimes.getYearStartTimeMs(), allOffsetDateTimes.getCurrentTimeMs());
+                Long h1InFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), inList, allOffsetDateTimes.getBeforeH1StartTimeMs(), allOffsetDateTimes.getCurrentTimeMs());
+                Long h1OutFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), outList, allOffsetDateTimes.getBeforeH1StartTimeMs(), allOffsetDateTimes.getCurrentTimeMs());
+                Long h12InFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), inList, allOffsetDateTimes.getBeforeH12StartTimeMs(), allOffsetDateTimes.getCurrentTimeMs());
+                Long h12OutFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), outList, allOffsetDateTimes.getBeforeH12StartTimeMs(), allOffsetDateTimes.getCurrentTimeMs());
+                Long d1InFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), inList, allOffsetDateTimes.getBeforeD1StartTimeMs(), allOffsetDateTimes.getCurrentTimeMs());
+                Long d1OutFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), outList, allOffsetDateTimes.getBeforeD1StartTimeMs(), allOffsetDateTimes.getCurrentTimeMs());
+                Long w1InFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), inList, allOffsetDateTimes.getBeforeW1StartTimeMs(), allOffsetDateTimes.getCurrentTimeMs());
+                Long w1OutFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), outList, allOffsetDateTimes.getBeforeW1StartTimeMs(), allOffsetDateTimes.getCurrentTimeMs());
+                Long m1InFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), inList, allOffsetDateTimes.getBeforeM1StartTimeMs(), allOffsetDateTimes.getCurrentTimeMs());
+                Long m1OutFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), outList, allOffsetDateTimes.getBeforeM1StartTimeMs(), allOffsetDateTimes.getCurrentTimeMs());
+                Long m3InFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), inList, allOffsetDateTimes.getBeforeM3StartTimeMs(), allOffsetDateTimes.getCurrentTimeMs());
+                Long m3OutFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), outList, allOffsetDateTimes.getBeforeM3StartTimeMs(), allOffsetDateTimes.getCurrentTimeMs());
+                Long m6InFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), inList, allOffsetDateTimes.getBeforeM6StartTimeMs(), allOffsetDateTimes.getCurrentTimeMs());
+                Long m6OutFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), outList, allOffsetDateTimes.getBeforeM6StartTimeMs(), allOffsetDateTimes.getCurrentTimeMs());
+                Long y1InFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), inList, allOffsetDateTimes.getBeforeY1StartTimeMs(), allOffsetDateTimes.getCurrentTimeMs());
+                Long y1OutFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), outList, allOffsetDateTimes.getBeforeY1StartTimeMs(), allOffsetDateTimes.getCurrentTimeMs());
+                Long totalInFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), inList, 0L, allOffsetDateTimes.getCurrentTimeMs());
+                Long totalOutFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), outList, 0L, allOffsetDateTimes.getCurrentTimeMs());
+
+                // 填充流量信息
+                flowSummary.setThisMinuteInFlowSummary(null2Zero(thisMinuteInFlowSummary));
+                flowSummary.setThisMinuteOutFlowSummary(null2Zero(thisMinuteOutFlowSummary));
+                flowSummary.setThisHourInFlowSummary(null2Zero(thisHourInFlowSummary));
+                flowSummary.setThisHourOutFlowSummary(null2Zero(thisHourOutFlowSummary));
+                flowSummary.setThisHalfDayInFlowSummary(null2Zero(thisHalfDayInFlowSummary));
+                flowSummary.setThisHalfDayOutFlowSummary(null2Zero(thisHalfDayOutFlowSummary));
+                flowSummary.setThisDayInFlowSummary(null2Zero(thisDayInFlowSummary));
+                flowSummary.setThisDayOutFlowSummary(null2Zero(thisDayOutFlowSummary));
+                flowSummary.setThisWeekInFlowSummary(null2Zero(thisWeekInFlowSummary));
+                flowSummary.setThisWeekOutFlowSummary(null2Zero(thisWeekOutFlowSummary));
+                flowSummary.setThisMonthInFlowSummary(null2Zero(thisMonthInFlowSummary));
+                flowSummary.setThisMonthOutFlowSummary(null2Zero(thisMonthOutFlowSummary));
+                flowSummary.setThisQuarterInFlowSummary(null2Zero(thisQuarterInFlowSummary));
+                flowSummary.setThisQuarterOutFlowSummary(null2Zero(thisQuarterOutFlowSummary));
+                flowSummary.setThisHalfYearInFlowSummary(null2Zero(thisHalfYearInFlowSummary));
+                flowSummary.setThisHalfYearOutFlowSummary(null2Zero(thisHalfYearOutFlowSummary));
+                flowSummary.setThisYearInFlowSummary(null2Zero(thisYearInFlowSummary));
+                flowSummary.setThisYearOutFlowSummary(null2Zero(thisYearOutFlowSummary));
+                flowSummary.setH1InFlowSummary(null2Zero(h1InFlowSummary));
+                flowSummary.setH1OutFlowSummary(null2Zero(h1OutFlowSummary));
+                flowSummary.setH12InFlowSummary(null2Zero(h12InFlowSummary));
+                flowSummary.setH12OutFlowSummary(null2Zero(h12OutFlowSummary));
+                flowSummary.setD1InFlowSummary(null2Zero(d1InFlowSummary));
+                flowSummary.setD1OutFlowSummary(null2Zero(d1OutFlowSummary));
+                flowSummary.setW1InFlowSummary(null2Zero(w1InFlowSummary));
+                flowSummary.setW1OutFlowSummary(null2Zero(w1OutFlowSummary));
+                flowSummary.setM1InFlowSummary(null2Zero(m1InFlowSummary));
+                flowSummary.setM1OutFlowSummary(null2Zero(m1OutFlowSummary));
+                flowSummary.setM3InFlowSummary(null2Zero(m3InFlowSummary));
+                flowSummary.setM3OutFlowSummary(null2Zero(m3OutFlowSummary));
+                flowSummary.setM6InFlowSummary(null2Zero(m6InFlowSummary));
+                flowSummary.setM6OutFlowSummary(null2Zero(m6OutFlowSummary));
+                flowSummary.setY1InFlowSummary(null2Zero(y1InFlowSummary));
+                flowSummary.setY1OutFlowSummary(null2Zero(y1OutFlowSummary));
+                flowSummary.setTotalInFlowSummary(null2Zero(totalInFlowSummary));
+                flowSummary.setTotalOutFlowSummary(null2Zero(totalOutFlowSummary));
+
+                flowSummary.setUserInfoId(userInfoId);
+                return flowSummary;
             }
-            // 首先获取需要统计的时间戳
-            AllOffsetDateTimes allOffsetDateTimes = new AllOffsetDateTimes(timeZone, dayOfWeek);
-
-            // 构造方向数组
-            List<Integer> inList = Arrays.asList(InOutSiteEnum.CLIENT_TO_SERVER.getDirection(), InOutSiteEnum.REMOTE_TO_SERVER.getDirection());
-            List<Integer> outList = Arrays.asList(InOutSiteEnum.SERVER_TO_CLIENT.getDirection(), InOutSiteEnum.SERVER_TO_REMOTE.getDirection());
-
-            // 计算流量
-            Long thisMinuteInFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), inList, allOffsetDateTimes.getMinuteStartTimeMs(), allOffsetDateTimes.getCurrentTimeMs());
-            Long thisMinuteOutFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), outList, allOffsetDateTimes.getMinuteStartTimeMs(), allOffsetDateTimes.getCurrentTimeMs());
-            Long thisHourInFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), inList, allOffsetDateTimes.getHourStartTimeMs(), allOffsetDateTimes.getCurrentTimeMs());
-            Long thisHourOutFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), outList, allOffsetDateTimes.getHourStartTimeMs(), allOffsetDateTimes.getCurrentTimeMs());
-            Long thisHalfDayInFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), inList, allOffsetDateTimes.getHalfDayStartTimeMs(), allOffsetDateTimes.getCurrentTimeMs());
-            Long thisHalfDayOutFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), outList, allOffsetDateTimes.getHalfDayStartTimeMs(), allOffsetDateTimes.getCurrentTimeMs());
-            Long thisDayInFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), inList, allOffsetDateTimes.getDayStartTimeMs(), allOffsetDateTimes.getCurrentTimeMs());
-            Long thisDayOutFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), outList, allOffsetDateTimes.getDayStartTimeMs(), allOffsetDateTimes.getCurrentTimeMs());
-            Long thisWeekInFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), inList, allOffsetDateTimes.getWeekStartTimeMs(), allOffsetDateTimes.getCurrentTimeMs());
-            Long thisWeekOutFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), outList, allOffsetDateTimes.getWeekStartTimeMs(), allOffsetDateTimes.getCurrentTimeMs());
-            Long thisMonthInFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), inList, allOffsetDateTimes.getMonthStartTimeMs(), allOffsetDateTimes.getCurrentTimeMs());
-            Long thisMonthOutFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), outList, allOffsetDateTimes.getMonthStartTimeMs(), allOffsetDateTimes.getCurrentTimeMs());
-            Long thisQuarterInFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), inList, allOffsetDateTimes.getQuarterStartTimeMs(), allOffsetDateTimes.getCurrentTimeMs());
-            Long thisQuarterOutFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), outList, allOffsetDateTimes.getQuarterStartTimeMs(), allOffsetDateTimes.getCurrentTimeMs());
-            Long thisHalfYearInFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), inList, allOffsetDateTimes.getHalfYearStartTimeMs(), allOffsetDateTimes.getCurrentTimeMs());
-            Long thisHalfYearOutFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), outList, allOffsetDateTimes.getHalfYearStartTimeMs(), allOffsetDateTimes.getCurrentTimeMs());
-            Long thisYearInFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), inList, allOffsetDateTimes.getYearStartTimeMs(), allOffsetDateTimes.getCurrentTimeMs());
-            Long thisYearOutFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), outList, allOffsetDateTimes.getYearStartTimeMs(), allOffsetDateTimes.getCurrentTimeMs());
-            Long h1InFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), inList, allOffsetDateTimes.getBeforeH1StartTimeMs(), allOffsetDateTimes.getCurrentTimeMs());
-            Long h1OutFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), outList, allOffsetDateTimes.getBeforeH1StartTimeMs(), allOffsetDateTimes.getCurrentTimeMs());
-            Long h12InFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), inList, allOffsetDateTimes.getBeforeH12StartTimeMs(), allOffsetDateTimes.getCurrentTimeMs());
-            Long h12OutFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), outList, allOffsetDateTimes.getBeforeH12StartTimeMs(), allOffsetDateTimes.getCurrentTimeMs());
-            Long d1InFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), inList, allOffsetDateTimes.getBeforeD1StartTimeMs(), allOffsetDateTimes.getCurrentTimeMs());
-            Long d1OutFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), outList, allOffsetDateTimes.getBeforeD1StartTimeMs(), allOffsetDateTimes.getCurrentTimeMs());
-            Long w1InFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), inList, allOffsetDateTimes.getBeforeW1StartTimeMs(), allOffsetDateTimes.getCurrentTimeMs());
-            Long w1OutFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), outList, allOffsetDateTimes.getBeforeW1StartTimeMs(), allOffsetDateTimes.getCurrentTimeMs());
-            Long m1InFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), inList, allOffsetDateTimes.getBeforeM1StartTimeMs(), allOffsetDateTimes.getCurrentTimeMs());
-            Long m1OutFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), outList, allOffsetDateTimes.getBeforeM1StartTimeMs(), allOffsetDateTimes.getCurrentTimeMs());
-            Long m3InFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), inList, allOffsetDateTimes.getBeforeM3StartTimeMs(), allOffsetDateTimes.getCurrentTimeMs());
-            Long m3OutFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), outList, allOffsetDateTimes.getBeforeM3StartTimeMs(), allOffsetDateTimes.getCurrentTimeMs());
-            Long m6InFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), inList, allOffsetDateTimes.getBeforeM6StartTimeMs(), allOffsetDateTimes.getCurrentTimeMs());
-            Long m6OutFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), outList, allOffsetDateTimes.getBeforeM6StartTimeMs(), allOffsetDateTimes.getCurrentTimeMs());
-            Long y1InFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), inList, allOffsetDateTimes.getBeforeY1StartTimeMs(), allOffsetDateTimes.getCurrentTimeMs());
-            Long y1OutFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), outList, allOffsetDateTimes.getBeforeY1StartTimeMs(), allOffsetDateTimes.getCurrentTimeMs());
-            Long totalInFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), inList, 0L, allOffsetDateTimes.getCurrentTimeMs());
-            Long totalOutFlowSummary = flowStatisticsDetailRepository.findSumFlowSizeByServerPortAndDirectionsAndGmtCreate(userInfo.getPort(), outList, 0L, allOffsetDateTimes.getCurrentTimeMs());
-
-            // 填充流量信息
-            flowSummary.setThisMinuteInFlowSummary(null2Zero(thisMinuteInFlowSummary));
-            flowSummary.setThisMinuteOutFlowSummary(null2Zero(thisMinuteOutFlowSummary));
-            flowSummary.setThisHourInFlowSummary(null2Zero(thisHourInFlowSummary));
-            flowSummary.setThisHourOutFlowSummary(null2Zero(thisHourOutFlowSummary));
-            flowSummary.setThisHalfDayInFlowSummary(null2Zero(thisHalfDayInFlowSummary));
-            flowSummary.setThisHalfDayOutFlowSummary(null2Zero(thisHalfDayOutFlowSummary));
-            flowSummary.setThisDayInFlowSummary(null2Zero(thisDayInFlowSummary));
-            flowSummary.setThisDayOutFlowSummary(null2Zero(thisDayOutFlowSummary));
-            flowSummary.setThisWeekInFlowSummary(null2Zero(thisWeekInFlowSummary));
-            flowSummary.setThisWeekOutFlowSummary(null2Zero(thisWeekOutFlowSummary));
-            flowSummary.setThisMonthInFlowSummary(null2Zero(thisMonthInFlowSummary));
-            flowSummary.setThisMonthOutFlowSummary(null2Zero(thisMonthOutFlowSummary));
-            flowSummary.setThisQuarterInFlowSummary(null2Zero(thisQuarterInFlowSummary));
-            flowSummary.setThisQuarterOutFlowSummary(null2Zero(thisQuarterOutFlowSummary));
-            flowSummary.setThisHalfYearInFlowSummary(null2Zero(thisHalfYearInFlowSummary));
-            flowSummary.setThisHalfYearOutFlowSummary(null2Zero(thisHalfYearOutFlowSummary));
-            flowSummary.setThisYearInFlowSummary(null2Zero(thisYearInFlowSummary));
-            flowSummary.setThisYearOutFlowSummary(null2Zero(thisYearOutFlowSummary));
-            flowSummary.setH1InFlowSummary(null2Zero(h1InFlowSummary));
-            flowSummary.setH1OutFlowSummary(null2Zero(h1OutFlowSummary));
-            flowSummary.setH12InFlowSummary(null2Zero(h12InFlowSummary));
-            flowSummary.setH12OutFlowSummary(null2Zero(h12OutFlowSummary));
-            flowSummary.setD1InFlowSummary(null2Zero(d1InFlowSummary));
-            flowSummary.setD1OutFlowSummary(null2Zero(d1OutFlowSummary));
-            flowSummary.setW1InFlowSummary(null2Zero(w1InFlowSummary));
-            flowSummary.setW1OutFlowSummary(null2Zero(w1OutFlowSummary));
-            flowSummary.setM1InFlowSummary(null2Zero(m1InFlowSummary));
-            flowSummary.setM1OutFlowSummary(null2Zero(m1OutFlowSummary));
-            flowSummary.setM3InFlowSummary(null2Zero(m3InFlowSummary));
-            flowSummary.setM3OutFlowSummary(null2Zero(m3OutFlowSummary));
-            flowSummary.setM6InFlowSummary(null2Zero(m6InFlowSummary));
-            flowSummary.setM6OutFlowSummary(null2Zero(m6OutFlowSummary));
-            flowSummary.setY1InFlowSummary(null2Zero(y1InFlowSummary));
-            flowSummary.setY1OutFlowSummary(null2Zero(y1OutFlowSummary));
-            flowSummary.setTotalInFlowSummary(null2Zero(totalInFlowSummary));
-            flowSummary.setTotalOutFlowSummary(null2Zero(totalOutFlowSummary));
-
-            flowSummary.setUserInfoId(userInfoId);
-            return flowSummary;
-        } finally {
-            readWriteLock.readLock().unlock();
         }
     }
 
@@ -166,8 +155,7 @@ public class FlowSummaryServiceImpl implements IFlowSummaryService {
 
     @Override
     public FlowSummary findAll(String timeZone, Integer dayOfWeek) {
-        readWriteLock.readLock().lock();
-        try {
+        synchronized (flowStatisticsDetailRepository) {
             FlowSummary flowSummary = new FlowSummary();
 
             // 首先获取需要统计的时间戳
@@ -253,20 +241,19 @@ public class FlowSummaryServiceImpl implements IFlowSummaryService {
             flowSummary.setTotalInFlowSummary(null2Zero(totalInFlowSummary));
             flowSummary.setTotalOutFlowSummary(null2Zero(totalOutFlowSummary));
             return flowSummary;
-        } finally {
-            readWriteLock.readLock().unlock();
         }
     }
 
     @Override
     public List<FlowSummary> findByRecordMinuteTime(Long recordMinuteTime) {
-        return flowSummaryRepository.findByRecordMinuteTime(recordMinuteTime);
+        synchronized (flowSummaryRepository) {
+            return flowSummaryRepository.findByRecordMinuteTime(recordMinuteTime);
+        }
     }
 
     @Override
     public Map<Long, FlowSummary> getTimeUserInfoMap(String userInfoId, List<Long> recordMinuteTimeList) {
-        readWriteLock.readLock().lock();
-        try {
+        synchronized (flowSummaryRepository) {
             // FlowSummary也是降序排序
             List<FlowSummary> flowSummaryList = flowSummaryRepository.findByUserInfoIdAndRecordMinuteTimeInOrderByRecordMinuteTimeDesc(userInfoId, recordMinuteTimeList);
             Map<Long, FlowSummary> timeUserInfoMap = new HashMap<>();
@@ -286,36 +273,35 @@ public class FlowSummaryServiceImpl implements IFlowSummaryService {
                 timeUserInfoMap.put(recordMinuteTimeList.get(i), new FlowSummary(recordMinuteTimeList.get(i), userInfoId));
             }
             return timeUserInfoMap;
-        } finally {
-            readWriteLock.readLock().unlock();
         }
     }
 
     @Override
     public FlowSummary findRecentUserInfoByUserInfoId(String userInfoId) {
-        return flowSummaryRepository.findTopByUserInfoIdOrderByRecordMinuteTimeDesc(userInfoId);
+        synchronized (flowSummaryRepository) {
+            return flowSummaryRepository.findTopByUserInfoIdOrderByRecordMinuteTimeDesc(userInfoId);
+        }
     }
 
     @Override
     public FlowSummary findAllRecent() {
-        readWriteLock.readLock().lock();
-        try {
-            List<UserInfo> userInfoList = userInfoRepository.findAll();
-            FlowSummary sumFlowSummary = null;
-            for (UserInfo userInfo : userInfoList) {
-                FlowSummary flowSummary = flowSummaryRepository.findTopByUserInfoIdOrderByRecordMinuteTimeDesc(userInfo.getId());
-                if (sumFlowSummary == null) {
-                    sumFlowSummary = flowSummary;
-                } else {
-                    sumFlowSummary = sumFlowSummary.add(flowSummary);
+        synchronized (flowSummaryRepository) {
+            synchronized (userInfoRepository) {
+                List<UserInfo> userInfoList = userInfoRepository.findAll();
+                FlowSummary sumFlowSummary = null;
+                for (UserInfo userInfo : userInfoList) {
+                    FlowSummary flowSummary = flowSummaryRepository.findTopByUserInfoIdOrderByRecordMinuteTimeDesc(userInfo.getId());
+                    if (sumFlowSummary == null) {
+                        sumFlowSummary = flowSummary;
+                    } else {
+                        sumFlowSummary = sumFlowSummary.add(flowSummary);
+                    }
                 }
+                if (sumFlowSummary != null) {
+                    sumFlowSummary.setUserInfoId(null);
+                }
+                return sumFlowSummary;
             }
-            if (sumFlowSummary != null) {
-                sumFlowSummary.setUserInfoId(null);
-            }
-            return sumFlowSummary;
-        } finally {
-            readWriteLock.readLock().unlock();
         }
     }
 
@@ -323,65 +309,77 @@ public class FlowSummaryServiceImpl implements IFlowSummaryService {
      * 更新FlowSummary这张表，它的操作非常简单
      * 1. 锁住FlowSummary写锁，其它线程不允许进行读写操作
      * 2. 从数据库中获取每个用户最近一条FlowSummary
-     *  2.1 如果最近一条FlowSummary不存在，也就是说FlowSummary数据库没有初始化过，那就从FlowStatistics表中取最早一条记录时间戳，在该时间戳基础上减一分钟，创建一条数值全为0的FlowSummary记录
-     *  2.2 如果存在，那么从该记录的开始时间+1分钟开始，一直计算到现在为止
+     * 2.1 如果最近一条FlowSummary不存在，也就是说FlowSummary数据库没有初始化过，那就从FlowStatistics表中取最早一条记录时间戳，在该时间戳基础上减一分钟，创建一条数值全为0的FlowSummary记录
+     * 2.2 如果存在，那么从该记录的开始时间+1分钟开始，一直计算到现在为止
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void updateFlowSummary() {
+        synchronized (flowStatisticsDetailRepository) {
+            synchronized (flowSummaryRepository) {
+                synchronized (userInfoRepository) {
+                    // 取出所有用户，
+                    List<UserInfo> userInfoList = userInfoRepository.findAll();
 
-        // TODO 不知道为什么，两个写锁居然可以同时进入，我居然可以一边更新一边删除，这是重大bug！
-        readWriteLock.writeLock().lock();
+                    while (true) {
+                        // 获取当前的时间
+                        OffsetDateTime currentOffsetDateTime = Instant.now().atOffset(ZoneOffset.of(customConfig.getTimeZone()));
 
-        try {
-            // 取出所有用户，
-            List<UserInfo> userInfoList = userInfoRepository.findAll();
+                        // 取出这些用户最近一条FlowSummary
+                        for (UserInfo userInfo : userInfoList) {
+                            FlowSummary flowSummary = flowSummaryRepository.findTopByUserInfoIdOrderByRecordMinuteTimeDesc(userInfo.getId());
+                            if (flowSummary == null) {
+                                // 从FlowStatistics表中取出最远的时间-2分钟
+                                FlowStatisticsDetail flowStatisticsDetail = flowStatisticsDetailRepository.findTopByServerPortOrderByGmtCreateAsc(userInfo.getPort());
+                                // 有可能数据库里面真的一条记录都没有，此时只能跳过这个用户了
+                                if (flowStatisticsDetail == null) {
+                                    log.debug("user {} has not use port {}", userInfo.getUsername(), userInfo.getPort());
+                                    continue;
+                                }
+                                Long gmtCreate = flowStatisticsDetail.getGmtCreate();
+                                OffsetDateTime offsetDateTime = Instant.ofEpochMilli(gmtCreate).atOffset(ZoneOffset.of(customConfig.getTimeZone()));
+                                OffsetDateTime frontMinuteOffsetDateTime = offsetDateTime.truncatedTo(ChronoUnit.MINUTES).minusMinutes(2);
+                                flowSummary = new FlowSummary(frontMinuteOffsetDateTime.toInstant().toEpochMilli(), userInfo.getId());
+                                flowSummaryRepository.save(flowSummary);
+                            }
+                            // 补上从flowSummary开始（不包括）到最后一刻到现在为止所有的时间
+                            OffsetDateTime offsetDateTime = Instant.ofEpochMilli(flowSummary.getRecordMinuteTime()).atOffset(ZoneOffset.of(customConfig.getTimeZone()));
+                            // 例如当前是10分，数据库中保存的是8分的数据，所以需要加2
+                            for (offsetDateTime = offsetDateTime.plusMinutes(2); offsetDateTime.isBefore(currentOffsetDateTime); offsetDateTime = offsetDateTime.plusMinutes(1)) {
+                                calcOneMinuteFlowAndSave(offsetDateTime.toInstant().toEpochMilli(), userInfo);
+                            }
+                        }
 
-            while (true) {
-                // 获取当前的时间
-                OffsetDateTime currentOffsetDateTime = Instant.now().atOffset(ZoneOffset.of(customConfig.getTimeZone()));
-
-                // 取出这些用户最近一条FlowSummary
-                for (UserInfo userInfo : userInfoList) {
-                    FlowSummary flowSummary = flowSummaryRepository.findTopByUserInfoIdOrderByRecordMinuteTimeDesc(userInfo.getId());
-                    if (flowSummary == null) {
-                        // 从FlowStatistics表中取出最远的时间-2分钟
-                        FlowStatisticsDetail flowStatisticsDetail = flowStatisticsDetailRepository.findTopByServerPortOrderByGmtCreateAsc(userInfo.getPort());
-                        Long gmtCreate = flowStatisticsDetail.getGmtCreate();
-                        OffsetDateTime offsetDateTime = Instant.ofEpochMilli(gmtCreate).atOffset(ZoneOffset.of(customConfig.getTimeZone()));
-                        OffsetDateTime frontMinuteOffsetDateTime = offsetDateTime.truncatedTo(ChronoUnit.MINUTES).minusMinutes(2);
-                        flowSummary = new FlowSummary(frontMinuteOffsetDateTime.toInstant().toEpochMilli(), userInfo.getId());
-                        flowSummaryRepository.save(flowSummary);
+                        OffsetDateTime newOffsetDateTime = Instant.now().atOffset(ZoneOffset.of(customConfig.getTimeZone()));
+                        if (currentOffsetDateTime.getMinute() == newOffsetDateTime.getMinute()) {
+                            // 说明FlowSummary表终于更新完毕了，那就退出来吧
+                            break;
+                        }
                     }
-                    // 补上从flowSummary开始（不包括）到最后一刻到现在为止所有的时间
-                    OffsetDateTime offsetDateTime = Instant.ofEpochMilli(flowSummary.getRecordMinuteTime()).atOffset(ZoneOffset.of(customConfig.getTimeZone()));
-                    for (offsetDateTime = offsetDateTime.plusMinutes(1); offsetDateTime.isBefore(currentOffsetDateTime); offsetDateTime = offsetDateTime.plusMinutes(1)) {
-                        calcOneMinuteFlowAndSave(offsetDateTime.toInstant().toEpochMilli(), userInfo);
-                    }
-                }
-
-                OffsetDateTime newOffsetDateTime = Instant.now().atOffset(ZoneOffset.of(customConfig.getTimeZone()));
-                if (currentOffsetDateTime.getMinute() == newOffsetDateTime.getMinute()) {
-                    // 说明FlowSummary表终于更新完毕了，那就退出来吧
-                    break;
                 }
             }
-        } finally {
-            readWriteLock.writeLock().unlock();
         }
     }
 
     /**
-     * 清空FlowSummary表，慎用！
+     * 清空FlowSummary表所有数据，慎用，仅在FlowSummary表出现负数时使用！
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void clearFlowSummary() {
-        readWriteLock.writeLock().lock();
-        try {
+    public void clearAll() {
+        synchronized (flowSummaryRepository) {
             flowSummaryRepository.deleteAll();
-        } finally {
-            readWriteLock.writeLock().unlock();
+        }
+    }
+
+    /**
+     * 清空与某个userInfoId有关的FlowSummary项目，删除用户时会使用
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void clearAll(String userInfoId) {
+        synchronized (flowSummaryRepository) {
+            flowSummaryRepository.deleteAllByUserInfoId(userInfoId);
         }
     }
 
@@ -392,145 +390,146 @@ public class FlowSummaryServiceImpl implements IFlowSummaryService {
      * @param needUserInfo 传null表示计算所有用户，否则只记录传入的用户
      */
     private void calcOneMinuteFlowAndSave(Long timeMs, UserInfo needUserInfo) {
-        readWriteLock.writeLock().lock();
-        try {
-            // 获取所有的时间戳
-            AllOffsetDateTimes allOffsetDateTimes = new AllOffsetDateTimes(timeMs, customConfig.getTimeZone(), customConfig.getDayOfWeek());
-            // 获取上上分钟的FlowSummaryList
-            List<FlowSummary> frontFrontMinuteFlowSummaryList = findByRecordMinuteTime(allOffsetDateTimes.getBeforeMin2MinuteStartTimeMs());
-            // 获取所有用户，并初始化frontMinuteFlowSummaryList
-            List<UserInfo> userInfoList = userInfoRepository.findAll();
-            // 统计所有用户上一分钟的进出流量
-            List<FlowStatisticsDetail> frontMinuteFlowStatisticsDetailList = flowStatisticsDetailRepository.findByGmtCreateGtLtGroupByServerPortAndDirection(allOffsetDateTimes.getBeforeMin1MinuteStartTimeMs(), allOffsetDateTimes.getMinuteStartTimeMs());
+        synchronized (flowStatisticsDetailRepository) {
+            synchronized (flowSummaryRepository) {
+                synchronized (userInfoRepository) {
+                    // 获取所有的时间戳
+                    AllOffsetDateTimes allOffsetDateTimes = new AllOffsetDateTimes(timeMs, customConfig.getTimeZone(), customConfig.getDayOfWeek());
+                    // 获取上上分钟的FlowSummaryList
+                    List<FlowSummary> frontFrontMinuteFlowSummaryList = findByRecordMinuteTime(allOffsetDateTimes.getBeforeMin2MinuteStartTimeMs());
+                    // 获取所有用户，并初始化frontMinuteFlowSummaryList
+                    List<UserInfo> userInfoList = userInfoRepository.findAll();
+                    // 统计所有用户上一分钟的进出流量
+                    List<FlowStatisticsDetail> frontMinuteFlowStatisticsDetailList = flowStatisticsDetailRepository.findByGmtCreateGtLtGroupByServerPortAndDirection(allOffsetDateTimes.getBeforeMin1MinuteStartTimeMs(), allOffsetDateTimes.getMinuteStartTimeMs());
 
-            // 往数据库FlowSummary中插入上一分钟的数据
-            OffsetDateTime frontMinuteStartTime = allOffsetDateTimes.getBeforeMin1MinuteStartTime();
-            List<Long> frontTimeMsList = getFrontTimeMsList(allOffsetDateTimes);
-            for (UserInfo userInfo : userInfoList) {
-                if (needUserInfo != null && !userInfo.equals(needUserInfo)) {
-                    // 如果只是求一个用户，那么就跳过其它用户
-                    continue;
-                }
-                FlowSummary fMinFlowSum = new FlowSummary(allOffsetDateTimes.getBeforeMin1MinuteStartTimeMs(), userInfo.getId());
-                FlowSummary ffMinFlowSum = findFlowSummaryByUserInfo(frontFrontMinuteFlowSummaryList, userInfo, allOffsetDateTimes.getBeforeMin2MinuteStartTimeMs());
-                FlowStatisticsDetail frontMinuteDirection1FlowStatisticDetail = findFlowStatisticsDetailByUserInfoAndDirection(frontMinuteFlowStatisticsDetailList, userInfo, InOutSiteEnum.CLIENT_TO_SERVER.getDirection());
-                FlowStatisticsDetail frontMinuteDirection2FlowStatisticDetail = findFlowStatisticsDetailByUserInfoAndDirection(frontMinuteFlowStatisticsDetailList, userInfo, InOutSiteEnum.SERVER_TO_CLIENT.getDirection());
-                FlowStatisticsDetail frontMinuteDirection3FlowStatisticDetail = findFlowStatisticsDetailByUserInfoAndDirection(frontMinuteFlowStatisticsDetailList, userInfo, InOutSiteEnum.SERVER_TO_REMOTE.getDirection());
-                FlowStatisticsDetail frontMinuteDirection4FlowStatisticDetail = findFlowStatisticsDetailByUserInfoAndDirection(frontMinuteFlowStatisticsDetailList, userInfo, InOutSiteEnum.REMOTE_TO_SERVER.getDirection());
-                Long frontMinuteInFlow = frontMinuteDirection1FlowStatisticDetail.getFlowSize() + frontMinuteDirection4FlowStatisticDetail.getFlowSize();
-                Long frontMinuteOutFlow = frontMinuteDirection2FlowStatisticDetail.getFlowSize() + frontMinuteDirection3FlowStatisticDetail.getFlowSize();
+                    // 往数据库FlowSummary中插入上一分钟的数据
+                    OffsetDateTime frontMinuteStartTime = allOffsetDateTimes.getBeforeMin1MinuteStartTime();
+                    List<Long> frontTimeMsList = getFrontTimeMsList(allOffsetDateTimes);
+                    for (UserInfo userInfo : userInfoList) {
+                        if (needUserInfo != null && !userInfo.equals(needUserInfo)) {
+                            // 如果只是求一个用户，那么就跳过其它用户
+                            continue;
+                        }
+                        FlowSummary fMinFlowSum = new FlowSummary(allOffsetDateTimes.getBeforeMin1MinuteStartTimeMs(), userInfo.getId());
+                        FlowSummary ffMinFlowSum = findFlowSummaryByUserInfo(frontFrontMinuteFlowSummaryList, userInfo, allOffsetDateTimes.getBeforeMin2MinuteStartTimeMs());
+                        FlowStatisticsDetail frontMinuteDirection1FlowStatisticDetail = findFlowStatisticsDetailByUserInfoAndDirection(frontMinuteFlowStatisticsDetailList, userInfo, InOutSiteEnum.CLIENT_TO_SERVER.getDirection());
+                        FlowStatisticsDetail frontMinuteDirection2FlowStatisticDetail = findFlowStatisticsDetailByUserInfoAndDirection(frontMinuteFlowStatisticsDetailList, userInfo, InOutSiteEnum.SERVER_TO_CLIENT.getDirection());
+                        FlowStatisticsDetail frontMinuteDirection3FlowStatisticDetail = findFlowStatisticsDetailByUserInfoAndDirection(frontMinuteFlowStatisticsDetailList, userInfo, InOutSiteEnum.SERVER_TO_REMOTE.getDirection());
+                        FlowStatisticsDetail frontMinuteDirection4FlowStatisticDetail = findFlowStatisticsDetailByUserInfoAndDirection(frontMinuteFlowStatisticsDetailList, userInfo, InOutSiteEnum.REMOTE_TO_SERVER.getDirection());
+                        Long frontMinuteInFlow = frontMinuteDirection1FlowStatisticDetail.getFlowSize() + frontMinuteDirection4FlowStatisticDetail.getFlowSize();
+                        Long frontMinuteOutFlow = frontMinuteDirection2FlowStatisticDetail.getFlowSize() + frontMinuteDirection3FlowStatisticDetail.getFlowSize();
 
-                fMinFlowSum.setThisMinuteInFlowSummary(frontMinuteInFlow);
-                fMinFlowSum.setThisMinuteOutFlowSummary(frontMinuteOutFlow);
-                // 如果不是一个新的小时
-                if (!frontMinuteStartTime.equals(allOffsetDateTimes.getHourStartTime())) {
-                    fMinFlowSum.setThisHourInFlowSummary(ffMinFlowSum.getThisHourInFlowSummary() + frontMinuteInFlow);
-                    fMinFlowSum.setThisHourOutFlowSummary(ffMinFlowSum.getThisHourOutFlowSummary() + frontMinuteOutFlow);
-                }
-                // 如果不是一个新的半天
-                if (!frontMinuteStartTime.equals(allOffsetDateTimes.getHalfDayStartTime())) {
-                    fMinFlowSum.setThisHalfDayInFlowSummary(ffMinFlowSum.getThisHalfDayInFlowSummary() + frontMinuteInFlow);
-                    fMinFlowSum.setThisHalfDayOutFlowSummary(ffMinFlowSum.getThisHalfDayOutFlowSummary() + frontMinuteOutFlow);
-                }
-                // 如果不是一个新天
-                if (!frontMinuteStartTime.equals(allOffsetDateTimes.getDayStartTime())) {
-                    fMinFlowSum.setThisDayInFlowSummary(ffMinFlowSum.getThisDayInFlowSummary() + frontMinuteInFlow);
-                    fMinFlowSum.setThisDayOutFlowSummary(ffMinFlowSum.getThisDayOutFlowSummary() + frontMinuteOutFlow);
-                }
-                // 如果不是一个新星期
-                if (!frontMinuteStartTime.equals(allOffsetDateTimes.getWeekStartTime())) {
-                    fMinFlowSum.setThisWeekInFlowSummary(ffMinFlowSum.getThisWeekInFlowSummary() + frontMinuteInFlow);
-                    fMinFlowSum.setThisWeekOutFlowSummary(ffMinFlowSum.getThisWeekOutFlowSummary() + frontMinuteOutFlow);
-                }
-                // 如果不是一个新月
-                if (!frontMinuteStartTime.equals(allOffsetDateTimes.getMonthStartTime())) {
-                    fMinFlowSum.setThisMonthInFlowSummary(ffMinFlowSum.getThisMonthInFlowSummary() + frontMinuteInFlow);
-                    fMinFlowSum.setThisMonthOutFlowSummary(ffMinFlowSum.getThisMonthOutFlowSummary() + frontMinuteOutFlow);
-                }
-                // 如果不是一个新季度
-                if (!frontMinuteStartTime.equals(allOffsetDateTimes.getQuarterStartTime())) {
-                    fMinFlowSum.setThisQuarterInFlowSummary(ffMinFlowSum.getThisQuarterInFlowSummary() + frontMinuteInFlow);
-                    fMinFlowSum.setThisQuarterOutFlowSummary(ffMinFlowSum.getThisQuarterOutFlowSummary() + frontMinuteOutFlow);
-                }
-                // 如果不是一个新半年
-                if (!frontMinuteStartTime.equals(allOffsetDateTimes.getHalfYearStartTime())) {
-                    fMinFlowSum.setThisHalfYearInFlowSummary(ffMinFlowSum.getThisHalfYearInFlowSummary() + frontMinuteInFlow);
-                    fMinFlowSum.setThisHalfYearOutFlowSummary(ffMinFlowSum.getThisHalfYearOutFlowSummary() + frontMinuteOutFlow);
-                }
-                // 如果不是一个新年
-                if (!frontMinuteStartTime.equals(allOffsetDateTimes.getYearStartTime())) {
-                    fMinFlowSum.setThisYearInFlowSummary(ffMinFlowSum.getThisYearInFlowSummary() + frontMinuteInFlow);
-                    fMinFlowSum.setThisYearOutFlowSummary(ffMinFlowSum.getThisYearOutFlowSummary() + frontMinuteOutFlow);
-                }
-                fMinFlowSum.setTotalInFlowSummary(ffMinFlowSum.getTotalInFlowSummary() + frontMinuteInFlow);
-                fMinFlowSum.setTotalOutFlowSummary(ffMinFlowSum.getTotalOutFlowSummary() + frontMinuteOutFlow);
+                        fMinFlowSum.setThisMinuteInFlowSummary(frontMinuteInFlow);
+                        fMinFlowSum.setThisMinuteOutFlowSummary(frontMinuteOutFlow);
+                        // 如果不是一个新的小时
+                        if (!frontMinuteStartTime.equals(allOffsetDateTimes.getHourStartTime())) {
+                            fMinFlowSum.setThisHourInFlowSummary(ffMinFlowSum.getThisHourInFlowSummary() + frontMinuteInFlow);
+                            fMinFlowSum.setThisHourOutFlowSummary(ffMinFlowSum.getThisHourOutFlowSummary() + frontMinuteOutFlow);
+                        }
+                        // 如果不是一个新的半天
+                        if (!frontMinuteStartTime.equals(allOffsetDateTimes.getHalfDayStartTime())) {
+                            fMinFlowSum.setThisHalfDayInFlowSummary(ffMinFlowSum.getThisHalfDayInFlowSummary() + frontMinuteInFlow);
+                            fMinFlowSum.setThisHalfDayOutFlowSummary(ffMinFlowSum.getThisHalfDayOutFlowSummary() + frontMinuteOutFlow);
+                        }
+                        // 如果不是一个新天
+                        if (!frontMinuteStartTime.equals(allOffsetDateTimes.getDayStartTime())) {
+                            fMinFlowSum.setThisDayInFlowSummary(ffMinFlowSum.getThisDayInFlowSummary() + frontMinuteInFlow);
+                            fMinFlowSum.setThisDayOutFlowSummary(ffMinFlowSum.getThisDayOutFlowSummary() + frontMinuteOutFlow);
+                        }
+                        // 如果不是一个新星期
+                        if (!frontMinuteStartTime.equals(allOffsetDateTimes.getWeekStartTime())) {
+                            fMinFlowSum.setThisWeekInFlowSummary(ffMinFlowSum.getThisWeekInFlowSummary() + frontMinuteInFlow);
+                            fMinFlowSum.setThisWeekOutFlowSummary(ffMinFlowSum.getThisWeekOutFlowSummary() + frontMinuteOutFlow);
+                        }
+                        // 如果不是一个新月
+                        if (!frontMinuteStartTime.equals(allOffsetDateTimes.getMonthStartTime())) {
+                            fMinFlowSum.setThisMonthInFlowSummary(ffMinFlowSum.getThisMonthInFlowSummary() + frontMinuteInFlow);
+                            fMinFlowSum.setThisMonthOutFlowSummary(ffMinFlowSum.getThisMonthOutFlowSummary() + frontMinuteOutFlow);
+                        }
+                        // 如果不是一个新季度
+                        if (!frontMinuteStartTime.equals(allOffsetDateTimes.getQuarterStartTime())) {
+                            fMinFlowSum.setThisQuarterInFlowSummary(ffMinFlowSum.getThisQuarterInFlowSummary() + frontMinuteInFlow);
+                            fMinFlowSum.setThisQuarterOutFlowSummary(ffMinFlowSum.getThisQuarterOutFlowSummary() + frontMinuteOutFlow);
+                        }
+                        // 如果不是一个新半年
+                        if (!frontMinuteStartTime.equals(allOffsetDateTimes.getHalfYearStartTime())) {
+                            fMinFlowSum.setThisHalfYearInFlowSummary(ffMinFlowSum.getThisHalfYearInFlowSummary() + frontMinuteInFlow);
+                            fMinFlowSum.setThisHalfYearOutFlowSummary(ffMinFlowSum.getThisHalfYearOutFlowSummary() + frontMinuteOutFlow);
+                        }
+                        // 如果不是一个新年
+                        if (!frontMinuteStartTime.equals(allOffsetDateTimes.getYearStartTime())) {
+                            fMinFlowSum.setThisYearInFlowSummary(ffMinFlowSum.getThisYearInFlowSummary() + frontMinuteInFlow);
+                            fMinFlowSum.setThisYearOutFlowSummary(ffMinFlowSum.getThisYearOutFlowSummary() + frontMinuteOutFlow);
+                        }
+                        fMinFlowSum.setTotalInFlowSummary(ffMinFlowSum.getTotalInFlowSummary() + frontMinuteInFlow);
+                        fMinFlowSum.setTotalOutFlowSummary(ffMinFlowSum.getTotalOutFlowSummary() + frontMinuteOutFlow);
 
-                Map<Long, FlowSummary> timeFlowSummaryMap = getTimeUserInfoMap(userInfo.getId(), frontTimeMsList);
-                // 近一小时流量
-                fMinFlowSum.setH1InFlowSummary(ffMinFlowSum.getH1InFlowSummary() -
-                        timeFlowSummaryMap.get(allOffsetDateTimes.getBeforeH1Min1MinuteStartTimeMs()).getThisMinuteInFlowSummary() +
-                        frontMinuteInFlow);
-                fMinFlowSum.setH1OutFlowSummary(ffMinFlowSum.getH1OutFlowSummary() -
-                        timeFlowSummaryMap.get(allOffsetDateTimes.getBeforeH1Min1MinuteStartTimeMs()).getThisMinuteOutFlowSummary() +
-                        frontMinuteOutFlow);
-                // 近半天流量
-                fMinFlowSum.setH12InFlowSummary(ffMinFlowSum.getH12InFlowSummary() -
-                        timeFlowSummaryMap.get(allOffsetDateTimes.getBeforeH12Min1MinuteStartTimeMs()).getThisMinuteInFlowSummary() +
-                        frontMinuteInFlow);
-                fMinFlowSum.setH12OutFlowSummary(ffMinFlowSum.getH12OutFlowSummary() -
-                        timeFlowSummaryMap.get(allOffsetDateTimes.getBeforeH12Min1MinuteStartTimeMs()).getThisMinuteOutFlowSummary() +
-                        frontMinuteOutFlow);
-                // 近一天流量
-                fMinFlowSum.setD1InFlowSummary(ffMinFlowSum.getD1InFlowSummary() -
-                        timeFlowSummaryMap.get(allOffsetDateTimes.getBeforeD1Min1MinuteStartTimeMs()).getThisMinuteInFlowSummary() +
-                        frontMinuteInFlow);
-                fMinFlowSum.setD1OutFlowSummary(ffMinFlowSum.getD1OutFlowSummary() -
-                        timeFlowSummaryMap.get(allOffsetDateTimes.getBeforeD1Min1MinuteStartTimeMs()).getThisMinuteOutFlowSummary() +
-                        frontMinuteOutFlow);
-                // 近一周流量
-                fMinFlowSum.setW1InFlowSummary(ffMinFlowSum.getW1InFlowSummary() -
-                        timeFlowSummaryMap.get(allOffsetDateTimes.getBeforeW1Min1MinuteStartTimeMs()).getThisMinuteInFlowSummary() +
-                        frontMinuteInFlow);
-                fMinFlowSum.setW1OutFlowSummary(ffMinFlowSum.getW1OutFlowSummary() -
-                        timeFlowSummaryMap.get(allOffsetDateTimes.getBeforeW1Min1MinuteStartTimeMs()).getThisMinuteOutFlowSummary() +
-                        frontMinuteOutFlow);
-                // 近一月流量
-                fMinFlowSum.setM1InFlowSummary(ffMinFlowSum.getM1InFlowSummary() -
-                        timeFlowSummaryMap.get(allOffsetDateTimes.getBeforeM1Min1MinuteStartTimeMs()).getThisMinuteInFlowSummary() +
-                        frontMinuteInFlow);
-                fMinFlowSum.setM1OutFlowSummary(ffMinFlowSum.getM1OutFlowSummary() -
-                        timeFlowSummaryMap.get(allOffsetDateTimes.getBeforeM1Min1MinuteStartTimeMs()).getThisMinuteOutFlowSummary() +
-                        frontMinuteOutFlow);
-                // 近三月流量
-                fMinFlowSum.setM3InFlowSummary(ffMinFlowSum.getM3InFlowSummary() -
-                        timeFlowSummaryMap.get(allOffsetDateTimes.getBeforeM3Min1MinuteStartTimeMs()).getThisMinuteInFlowSummary() +
-                        frontMinuteInFlow);
-                fMinFlowSum.setM3OutFlowSummary(ffMinFlowSum.getM3OutFlowSummary() -
-                        timeFlowSummaryMap.get(allOffsetDateTimes.getBeforeM3Min1MinuteStartTimeMs()).getThisMinuteOutFlowSummary() +
-                        frontMinuteOutFlow);
-                // 近半年流量
-                fMinFlowSum.setM6InFlowSummary(ffMinFlowSum.getM6InFlowSummary() -
-                        timeFlowSummaryMap.get(allOffsetDateTimes.getBeforeM6Min1MinuteStartTimeMs()).getThisMinuteInFlowSummary() +
-                        frontMinuteInFlow);
-                fMinFlowSum.setM6OutFlowSummary(ffMinFlowSum.getM6OutFlowSummary() -
-                        timeFlowSummaryMap.get(allOffsetDateTimes.getBeforeM6Min1MinuteStartTimeMs()).getThisMinuteOutFlowSummary() +
-                        frontMinuteOutFlow);
-                // 近一年流量
-                fMinFlowSum.setY1InFlowSummary(ffMinFlowSum.getY1InFlowSummary() -
-                        timeFlowSummaryMap.get(allOffsetDateTimes.getBeforeY1Min1MinuteStartTimeMs()).getThisMinuteInFlowSummary() +
-                        frontMinuteInFlow);
-                fMinFlowSum.setY1OutFlowSummary(ffMinFlowSum.getY1OutFlowSummary() -
-                        timeFlowSummaryMap.get(allOffsetDateTimes.getBeforeY1Min1MinuteStartTimeMs()).getThisMinuteOutFlowSummary() +
-                        frontMinuteOutFlow);
+                        Map<Long, FlowSummary> timeFlowSummaryMap = getTimeUserInfoMap(userInfo.getId(), frontTimeMsList);
+                        // 近一小时流量
+                        fMinFlowSum.setH1InFlowSummary(ffMinFlowSum.getH1InFlowSummary() -
+                                timeFlowSummaryMap.get(allOffsetDateTimes.getBeforeH1Min1MinuteStartTimeMs()).getThisMinuteInFlowSummary() +
+                                frontMinuteInFlow);
+                        fMinFlowSum.setH1OutFlowSummary(ffMinFlowSum.getH1OutFlowSummary() -
+                                timeFlowSummaryMap.get(allOffsetDateTimes.getBeforeH1Min1MinuteStartTimeMs()).getThisMinuteOutFlowSummary() +
+                                frontMinuteOutFlow);
+                        // 近半天流量
+                        fMinFlowSum.setH12InFlowSummary(ffMinFlowSum.getH12InFlowSummary() -
+                                timeFlowSummaryMap.get(allOffsetDateTimes.getBeforeH12Min1MinuteStartTimeMs()).getThisMinuteInFlowSummary() +
+                                frontMinuteInFlow);
+                        fMinFlowSum.setH12OutFlowSummary(ffMinFlowSum.getH12OutFlowSummary() -
+                                timeFlowSummaryMap.get(allOffsetDateTimes.getBeforeH12Min1MinuteStartTimeMs()).getThisMinuteOutFlowSummary() +
+                                frontMinuteOutFlow);
+                        // 近一天流量
+                        fMinFlowSum.setD1InFlowSummary(ffMinFlowSum.getD1InFlowSummary() -
+                                timeFlowSummaryMap.get(allOffsetDateTimes.getBeforeD1Min1MinuteStartTimeMs()).getThisMinuteInFlowSummary() +
+                                frontMinuteInFlow);
+                        fMinFlowSum.setD1OutFlowSummary(ffMinFlowSum.getD1OutFlowSummary() -
+                                timeFlowSummaryMap.get(allOffsetDateTimes.getBeforeD1Min1MinuteStartTimeMs()).getThisMinuteOutFlowSummary() +
+                                frontMinuteOutFlow);
+                        // 近一周流量
+                        fMinFlowSum.setW1InFlowSummary(ffMinFlowSum.getW1InFlowSummary() -
+                                timeFlowSummaryMap.get(allOffsetDateTimes.getBeforeW1Min1MinuteStartTimeMs()).getThisMinuteInFlowSummary() +
+                                frontMinuteInFlow);
+                        fMinFlowSum.setW1OutFlowSummary(ffMinFlowSum.getW1OutFlowSummary() -
+                                timeFlowSummaryMap.get(allOffsetDateTimes.getBeforeW1Min1MinuteStartTimeMs()).getThisMinuteOutFlowSummary() +
+                                frontMinuteOutFlow);
+                        // 近一月流量
+                        fMinFlowSum.setM1InFlowSummary(ffMinFlowSum.getM1InFlowSummary() -
+                                timeFlowSummaryMap.get(allOffsetDateTimes.getBeforeM1Min1MinuteStartTimeMs()).getThisMinuteInFlowSummary() +
+                                frontMinuteInFlow);
+                        fMinFlowSum.setM1OutFlowSummary(ffMinFlowSum.getM1OutFlowSummary() -
+                                timeFlowSummaryMap.get(allOffsetDateTimes.getBeforeM1Min1MinuteStartTimeMs()).getThisMinuteOutFlowSummary() +
+                                frontMinuteOutFlow);
+                        // 近三月流量
+                        fMinFlowSum.setM3InFlowSummary(ffMinFlowSum.getM3InFlowSummary() -
+                                timeFlowSummaryMap.get(allOffsetDateTimes.getBeforeM3Min1MinuteStartTimeMs()).getThisMinuteInFlowSummary() +
+                                frontMinuteInFlow);
+                        fMinFlowSum.setM3OutFlowSummary(ffMinFlowSum.getM3OutFlowSummary() -
+                                timeFlowSummaryMap.get(allOffsetDateTimes.getBeforeM3Min1MinuteStartTimeMs()).getThisMinuteOutFlowSummary() +
+                                frontMinuteOutFlow);
+                        // 近半年流量
+                        fMinFlowSum.setM6InFlowSummary(ffMinFlowSum.getM6InFlowSummary() -
+                                timeFlowSummaryMap.get(allOffsetDateTimes.getBeforeM6Min1MinuteStartTimeMs()).getThisMinuteInFlowSummary() +
+                                frontMinuteInFlow);
+                        fMinFlowSum.setM6OutFlowSummary(ffMinFlowSum.getM6OutFlowSummary() -
+                                timeFlowSummaryMap.get(allOffsetDateTimes.getBeforeM6Min1MinuteStartTimeMs()).getThisMinuteOutFlowSummary() +
+                                frontMinuteOutFlow);
+                        // 近一年流量
+                        fMinFlowSum.setY1InFlowSummary(ffMinFlowSum.getY1InFlowSummary() -
+                                timeFlowSummaryMap.get(allOffsetDateTimes.getBeforeY1Min1MinuteStartTimeMs()).getThisMinuteInFlowSummary() +
+                                frontMinuteInFlow);
+                        fMinFlowSum.setY1OutFlowSummary(ffMinFlowSum.getY1OutFlowSummary() -
+                                timeFlowSummaryMap.get(allOffsetDateTimes.getBeforeY1Min1MinuteStartTimeMs()).getThisMinuteOutFlowSummary() +
+                                frontMinuteOutFlow);
 
-                // 保存
-                flowSummaryRepository.save(fMinFlowSum);
-                // 打印一下进度
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                log.debug("端口{}于{}的FlowSummary已更新", userInfo.getPort(), sdf.format(new Date(timeMs)));
+                        // 保存
+                        flowSummaryRepository.save(fMinFlowSum);
+                        // 打印一下进度
+                        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                        log.debug("端口{}于{}的FlowSummary已更新", userInfo.getPort(), sdf.format(new Date(fMinFlowSum.getRecordMinuteTime())));
+                    }
+                }
             }
-        } finally {
-            readWriteLock.writeLock().unlock();
         }
     }
 

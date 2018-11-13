@@ -19,7 +19,7 @@ import javax.persistence.Table;
         @Index(name = "idTime", columnList = "userInfoId, recordMinuteTime")
 })
 @Slf4j
-public class FlowSummary extends BaseEntity {
+public class FlowSummary extends BaseEntity implements Cloneable {
 
     public FlowSummary() {}
 
@@ -64,6 +64,11 @@ public class FlowSummary extends BaseEntity {
         this.totalOutFlowSummary = 0L;
     }
 
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        return super.clone();
+    }
+
     public FlowSummary add(FlowSummary flowSummary) {
         try {
             FlowSummary retFlowSummary = (FlowSummary) this.clone();
@@ -79,30 +84,30 @@ public class FlowSummary extends BaseEntity {
             retFlowSummary.h12OutFlowSummary += flowSummary.h12OutFlowSummary;
             retFlowSummary.thisDayInFlowSummary += flowSummary.thisDayInFlowSummary;
             retFlowSummary.thisDayOutFlowSummary += flowSummary.thisDayOutFlowSummary;
-            retFlowSummary.d1InFlowSummary = flowSummary.d1InFlowSummary;
-            retFlowSummary.d1OutFlowSummary = flowSummary.d1OutFlowSummary;
-            retFlowSummary.thisWeekInFlowSummary = flowSummary.thisWeekInFlowSummary;
-            retFlowSummary.thisWeekOutFlowSummary = flowSummary.thisWeekOutFlowSummary;
-            retFlowSummary.w1InFlowSummary = flowSummary.w1InFlowSummary;
-            retFlowSummary.w1OutFlowSummary = flowSummary.w1OutFlowSummary;
-            retFlowSummary.thisMonthInFlowSummary = flowSummary.thisMonthInFlowSummary;
-            retFlowSummary.thisMonthOutFlowSummary = flowSummary.thisMonthOutFlowSummary;
-            retFlowSummary.m1InFlowSummary = flowSummary.m1InFlowSummary;
-            retFlowSummary.m1OutFlowSummary = flowSummary.m1OutFlowSummary;
-            retFlowSummary.thisQuarterInFlowSummary = flowSummary.thisQuarterInFlowSummary;
-            retFlowSummary.thisQuarterOutFlowSummary = flowSummary.thisQuarterOutFlowSummary;
-            retFlowSummary.m3InFlowSummary = flowSummary.m3InFlowSummary;
-            retFlowSummary.m3OutFlowSummary = flowSummary.m3OutFlowSummary;
-            retFlowSummary.thisHalfYearInFlowSummary = flowSummary.thisHalfYearInFlowSummary;
-            retFlowSummary.thisHalfYearOutFlowSummary = flowSummary.thisHalfYearOutFlowSummary;
-            retFlowSummary.m6InFlowSummary = flowSummary.m6InFlowSummary;
-            retFlowSummary.m6OutFlowSummary = flowSummary.m6OutFlowSummary;
-            retFlowSummary.thisYearInFlowSummary = flowSummary.thisYearInFlowSummary;
-            retFlowSummary.thisYearOutFlowSummary = flowSummary.thisYearOutFlowSummary;
-            retFlowSummary.y1InFlowSummary = flowSummary.y1InFlowSummary;
-            retFlowSummary.y1OutFlowSummary = flowSummary.y1OutFlowSummary;
-            retFlowSummary.totalInFlowSummary = flowSummary.totalInFlowSummary;
-            retFlowSummary.totalOutFlowSummary = flowSummary.totalOutFlowSummary;
+            retFlowSummary.d1InFlowSummary += flowSummary.d1InFlowSummary;
+            retFlowSummary.d1OutFlowSummary += flowSummary.d1OutFlowSummary;
+            retFlowSummary.thisWeekInFlowSummary += flowSummary.thisWeekInFlowSummary;
+            retFlowSummary.thisWeekOutFlowSummary += flowSummary.thisWeekOutFlowSummary;
+            retFlowSummary.w1InFlowSummary += flowSummary.w1InFlowSummary;
+            retFlowSummary.w1OutFlowSummary += flowSummary.w1OutFlowSummary;
+            retFlowSummary.thisMonthInFlowSummary += flowSummary.thisMonthInFlowSummary;
+            retFlowSummary.thisMonthOutFlowSummary += flowSummary.thisMonthOutFlowSummary;
+            retFlowSummary.m1InFlowSummary += flowSummary.m1InFlowSummary;
+            retFlowSummary.m1OutFlowSummary += flowSummary.m1OutFlowSummary;
+            retFlowSummary.thisQuarterInFlowSummary += flowSummary.thisQuarterInFlowSummary;
+            retFlowSummary.thisQuarterOutFlowSummary += flowSummary.thisQuarterOutFlowSummary;
+            retFlowSummary.m3InFlowSummary += flowSummary.m3InFlowSummary;
+            retFlowSummary.m3OutFlowSummary += flowSummary.m3OutFlowSummary;
+            retFlowSummary.thisHalfYearInFlowSummary += flowSummary.thisHalfYearInFlowSummary;
+            retFlowSummary.thisHalfYearOutFlowSummary += flowSummary.thisHalfYearOutFlowSummary;
+            retFlowSummary.m6InFlowSummary += flowSummary.m6InFlowSummary;
+            retFlowSummary.m6OutFlowSummary += flowSummary.m6OutFlowSummary;
+            retFlowSummary.thisYearInFlowSummary += flowSummary.thisYearInFlowSummary;
+            retFlowSummary.thisYearOutFlowSummary += flowSummary.thisYearOutFlowSummary;
+            retFlowSummary.y1InFlowSummary += flowSummary.y1InFlowSummary;
+            retFlowSummary.y1OutFlowSummary += flowSummary.y1OutFlowSummary;
+            retFlowSummary.totalInFlowSummary += flowSummary.totalInFlowSummary;
+            retFlowSummary.totalOutFlowSummary += flowSummary.totalOutFlowSummary;
             return retFlowSummary;
         } catch (CloneNotSupportedException e) {
             log.error("CloneNotSupportedException e = {}", e);

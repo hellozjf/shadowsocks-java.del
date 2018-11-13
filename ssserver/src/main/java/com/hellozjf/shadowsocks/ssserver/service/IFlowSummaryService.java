@@ -5,6 +5,7 @@ import com.hellozjf.shadowsocks.ssserver.dataobject.UserInfo;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.ReadWriteLock;
 
 /**
  * @author Jingfeng Zhou
@@ -19,5 +20,6 @@ public interface IFlowSummaryService {
     FlowSummary findRecentUserInfoByUserInfoId(String userInfoId);
     FlowSummary findAllRecent();
     void updateFlowSummary();
-    void clearFlowSummary();
+    void clearAll();
+    void clearAll(String userInfoId);
 }

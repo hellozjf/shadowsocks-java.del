@@ -14,10 +14,10 @@ import org.springframework.stereotype.Component;
 @Aspect
 @Slf4j
 @Component
-public class ControllerAspect {
+public class ServiceAspect {
 
-    @Pointcut("execution( * com.hellozjf.shadowsocks.ssserver.controller..*.*(..))")
-    public void controllerPointCut() {
+    @Pointcut("execution( public * com.hellozjf.shadowsocks.ssserver.service.impl.*.*(..))")
+    public void servicePointCut() {
     }
 
     /**
@@ -25,19 +25,13 @@ public class ControllerAspect {
      *
      * @param joinPoint
      */
-    @Around("controllerPointCut()")
+    @Around("servicePointCut()")
     public Object timeAround(ProceedingJoinPoint joinPoint) throws Throwable {
         long startTime = System.currentTimeMillis();
         Object obj = joinPoint.proceed(joinPoint.getArgs());
         long costTime = System.currentTimeMillis() - startTime;
         String classAndMethod = joinPoint.getSignature().getDeclaringTypeName() + "." + joinPoint.getSignature().getName();
         log.debug("执行{}耗时为：{}ms", classAndMethod, costTime);
-        // 对controller中返回的ResultVO对象增加costTime字段
-        if (obj instanceof ResultVO) {
-            ResultVO resultVO = (ResultVO) obj;
-            resultVO.setCostTime(costTime);
-            return resultVO;
-        }
         return obj;
     }
 }

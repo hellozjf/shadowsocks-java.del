@@ -22,7 +22,7 @@ public class FlowStatisticsDetailController {
     @Autowired
     private IFlowStatisticsDetailService flowStatisticsDetailService;
 
-    @GetMapping("/getAllClientIpInfo/all")
+    @GetMapping("/getAllClientIpInfo/")
     public ResultVO getAllClientIpInfo() {
         List<ClientIpInfo> clientIpInfoList = flowStatisticsDetailService.getAllClientIpInfoList();
         return ResultUtils.success(clientIpInfoList);

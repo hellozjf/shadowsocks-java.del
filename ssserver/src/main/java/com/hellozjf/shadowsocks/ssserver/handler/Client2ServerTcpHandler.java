@@ -3,8 +3,9 @@ package com.hellozjf.shadowsocks.ssserver.handler;
 import com.hellozjf.shadowsocks.ssserver.constant.InOutSiteEnum;
 import com.hellozjf.shadowsocks.ssserver.constant.SSCommon;
 import com.hellozjf.shadowsocks.ssserver.repository.FlowStatisticsDetailRepository;
+import com.hellozjf.shadowsocks.ssserver.service.IFlowStatisticsDetailService;
+import com.hellozjf.shadowsocks.ssserver.util.BeanUtils;
 import com.hellozjf.shadowsocks.ssserver.util.ChannelUtils;
-import com.hellozjf.shadowsocks.ssserver.util.FlowStatisticsDetailRepositoryUtils;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.*;
@@ -30,11 +31,7 @@ public class Client2ServerTcpHandler extends SimpleChannelInboundHandler<ByteBuf
      */
     private List<ByteBuf> clientByteBufList;
 
-    private FlowStatisticsDetailRepository flowStatisticsDetailRepository;
-
     public Client2ServerTcpHandler() {
-        // 手动注入FlowStatisticsDetailRepository
-        flowStatisticsDetailRepository = FlowStatisticsDetailRepositoryUtils.getFlowStatisticsDetailRepository();
     }
 
     @Override
@@ -69,7 +66,7 @@ public class Client2ServerTcpHandler extends SimpleChannelInboundHandler<ByteBuf
                                             .addLast("timeout", new IdleStateHandler(0, 0, SSCommon.TCP_PROXY_IDEL_TIME, TimeUnit.SECONDS))
                                             .addLast("idleClose", new IdleCloseHandler())
                                             .addLast("inFlowStatistics", new InFlowStatisticsHandler(InOutSiteEnum.REMOTE_TO_SERVER.getDirection()))
-                                            .addLast("reomte2server", new Remote2ServerHandler(clientServerCtx, flowStatisticsDetailRepository))
+                                            .addLast("reomte2server", new Remote2ServerHandler(clientServerCtx))
                                             .addLast("outFlowStatistics", new OutFlowStatisticsHandler(InOutSiteEnum.SERVER_TO_REMOTE.getDirection()));
                                 }
                             }

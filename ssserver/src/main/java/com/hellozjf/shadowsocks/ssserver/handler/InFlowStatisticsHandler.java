@@ -1,8 +1,8 @@
 package com.hellozjf.shadowsocks.ssserver.handler;
 
-import com.hellozjf.shadowsocks.ssserver.repository.FlowStatisticsDetailRepository;
+import com.hellozjf.shadowsocks.ssserver.service.IFlowStatisticsDetailService;
+import com.hellozjf.shadowsocks.ssserver.util.BeanUtils;
 import com.hellozjf.shadowsocks.ssserver.util.ByteBufUtils;
-import com.hellozjf.shadowsocks.ssserver.util.FlowStatisticsDetailRepositoryUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -16,13 +16,13 @@ import java.net.InetSocketAddress;
 @Slf4j
 public class InFlowStatisticsHandler extends ChannelInboundHandlerAdapter {
 
-    private FlowStatisticsDetailRepository flowStatisticsDetailRepository;
+    private IFlowStatisticsDetailService flowStatisticsDetailService;
     private Integer inType;
 
     public InFlowStatisticsHandler(Integer inType) {
         this.inType = inType;
-        // 手动注入FlowStatisticsDetailRepository
-        flowStatisticsDetailRepository = FlowStatisticsDetailRepositoryUtils.getFlowStatisticsDetailRepository();
+        // 手动注入FlowStatisticsDetailService
+        flowStatisticsDetailService = BeanUtils.getFlowStatisticsDetailServiceImpl();
     }
 
     @Override
@@ -30,9 +30,8 @@ public class InFlowStatisticsHandler extends ChannelInboundHandlerAdapter {
 
         ByteBuf byteBuf = ByteBufUtils.getByteBufFromMsg(msg);
         if (byteBuf != null) {
-            FlowStatisticsDetailRepositoryUtils.record(serverRemoteCtx,
+            flowStatisticsDetailService.record(serverRemoteCtx,
                     byteBuf,
-                    flowStatisticsDetailRepository,
                     inType);
         }
 

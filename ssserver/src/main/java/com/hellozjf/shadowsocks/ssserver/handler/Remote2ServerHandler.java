@@ -2,6 +2,8 @@ package com.hellozjf.shadowsocks.ssserver.handler;
 
 import com.hellozjf.shadowsocks.ssserver.constant.SSCommon;
 import com.hellozjf.shadowsocks.ssserver.repository.FlowStatisticsDetailRepository;
+import com.hellozjf.shadowsocks.ssserver.service.IFlowStatisticsDetailService;
+import com.hellozjf.shadowsocks.ssserver.util.BeanUtils;
 import com.hellozjf.shadowsocks.ssserver.util.ChannelUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -17,11 +19,9 @@ import java.net.InetSocketAddress;
 public class Remote2ServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
     private ChannelHandlerContext clientServerCtx;
-    private FlowStatisticsDetailRepository flowStatisticsDetailRepository;
 
-    public Remote2ServerHandler(ChannelHandlerContext client2ServerCtx, FlowStatisticsDetailRepository flowStatisticsDetailRepository) {
+    public Remote2ServerHandler(ChannelHandlerContext client2ServerCtx) {
         this.clientServerCtx = client2ServerCtx;
-        this.flowStatisticsDetailRepository = flowStatisticsDetailRepository;
     }
 
     @Override

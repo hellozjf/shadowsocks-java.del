@@ -3,6 +3,7 @@ package com.hellozjf.shadowsocks.ssserver.service;
 import com.hellozjf.shadowsocks.ssserver.dataobject.UserInfo;
 
 import java.util.List;
+import java.util.concurrent.locks.ReadWriteLock;
 
 /**
  * @author Jingfeng Zhou

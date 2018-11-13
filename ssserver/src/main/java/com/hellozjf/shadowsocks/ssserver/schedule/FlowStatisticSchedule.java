@@ -25,11 +25,7 @@ public class FlowStatisticSchedule {
      */
     @Scheduled(cron = "0 * * * * ?")
     public void updateFlowSummary() {
-        Date currentDate = new Date();
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        log.debug("于{}更新FlowSummary", sdf.format(currentDate));
         // 每分钟更新流量汇总表
         flowSummaryService.updateFlowSummary();
-        log.debug("于{}更新FlowSummary花费{}ms", sdf.format(currentDate), System.currentTimeMillis() - currentDate.getTime());
     }
 }
