@@ -123,6 +123,7 @@ public class SSServer {
                     log.info("端口{}被占用了，即将杀死占用端口的进程", port);
                     try {
                         String pid = processUtils.getPID(String.valueOf(port));
+                        log.debug("端口{}被PID为{}的进程占用了", port, pid);
                         processUtils.killPID(pid);
                     } catch (Exception unknownException) {
                         // 这里报错一定是哪里出问题了，那么对不起，我要结束程序
