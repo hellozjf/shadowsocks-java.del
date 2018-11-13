@@ -6,7 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.text.SimpleDateFormat;
 import java.time.Instant;
+import java.util.Date;
 
 /**
  * @author hellozjf
@@ -23,8 +25,11 @@ public class FlowStatisticSchedule {
      */
     @Scheduled(cron = "0 * * * * ?")
     public void updateFlowSummary() {
-        if (flowSummaryService.isFlowSummaryInited()) {
-            flowSummaryService.calcOneMinuteFlowAndSave(Instant.now().toEpochMilli(), null);
-        }
+        Date currentDate = new Date();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        log.debug("于{}更新FlowSummary", sdf.format(currentDate));
+        // 每分钟更新流量汇总表
+        flowSummaryService.updateFlowSummary();
+        log.debug("于{}更新FlowSummary花费{}ms", sdf.format(currentDate), System.currentTimeMillis() - currentDate.getTime());
     }
 }

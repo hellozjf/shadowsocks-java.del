@@ -30,6 +30,7 @@ public class FlowSummaryController {
     private IUserInfoService userInfoService;
 
     /**
+     * TODO 这个接口有问题！返回的全是null
      * 获取所有流量汇总信息
      * @return
      */
@@ -67,5 +68,15 @@ public class FlowSummaryController {
         } else {
             return ResultUtils.success(flowSummary);
         }
+    }
+
+    /**
+     * 删除FlowSummary表所有记录，这样定时器一分钟到了之后会重新生成所有记录
+     * @return
+     */
+    @DeleteMapping("/")
+    public ResultVO deleteAll() {
+        flowSummerService.clearFlowSummary();
+        return ResultUtils.success();
     }
 }

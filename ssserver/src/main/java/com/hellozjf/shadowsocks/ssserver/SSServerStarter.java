@@ -27,8 +27,7 @@ public class SSServerStarter {
     @Bean
     public CommandLineRunner commandLineRunner(IFlowSummaryService flowSummaryService, SSServer ssServer) {
         return args -> {
-            // 首先通过flowStatistics表初始化flowSummary表
-            flowSummaryService.initFlowSummary();
+            // FlowSummary表定时器会定时更新它，我们就别在初始化的时候做这件事情了
             // 然后才能启动服务器
             ssServer.start();
         };

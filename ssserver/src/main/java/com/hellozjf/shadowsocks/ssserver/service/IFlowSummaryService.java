@@ -16,9 +16,8 @@ public interface IFlowSummaryService {
     FlowSummary findAll(String timeZone, Integer dayOfWeek);
     List<FlowSummary> findByRecordMinuteTime(Long recordMinuteTime);
     Map<Long, FlowSummary> getTimeUserInfoMap(String userInfoId, List<Long> recordMinuteTime);
-    void initFlowSummary();
-    boolean isFlowSummaryInited();
-    void calcOneMinuteFlowAndSave(Long timeMs, UserInfo needUserInfo);
     FlowSummary findRecentUserInfoByUserInfoId(String userInfoId);
     FlowSummary findAllRecent();
+    void updateFlowSummary();
+    void clearFlowSummary();
 }
