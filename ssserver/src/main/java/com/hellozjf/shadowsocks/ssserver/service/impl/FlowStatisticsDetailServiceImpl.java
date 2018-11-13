@@ -5,7 +5,8 @@ import com.hellozjf.shadowsocks.ssserver.constant.SSCommon;
 import com.hellozjf.shadowsocks.ssserver.dataobject.FlowStatisticsDetail;
 import com.hellozjf.shadowsocks.ssserver.repository.FlowStatisticsDetailRepository;
 import com.hellozjf.shadowsocks.ssserver.service.IFlowStatisticsDetailService;
-import com.hellozjf.shadowsocks.ssserver.vo.ClientIpInfo;
+import com.hellozjf.shadowsocks.ssserver.vo.ClientIpInfoVO;
+import com.hellozjf.shadowsocks.ssserver.vo.ClientHostBrowseContentVO;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
@@ -17,9 +18,8 @@ import org.springframework.web.client.RestTemplate;
 
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * @author hellozjf
@@ -60,7 +60,7 @@ public class FlowStatisticsDetailServiceImpl implements IFlowStatisticsDetailSer
     }
 
     @Override
-    public List<ClientIpInfo> getAllClientIpInfoList() {
+    public List<ClientIpInfoVO> getAllClientIpInfoList() {
         synchronized (flowStatisticsDetailRepository) {
             List<String> allIpList;
             allIpList = flowStatisticsDetailRepository.findAllIpList();
@@ -70,12 +70,30 @@ public class FlowStatisticsDetailServiceImpl implements IFlowStatisticsDetailSer
     }
 
     @Override
-    public List<ClientIpInfo> getAllClientIpInfoListByServerPort(Integer serverPort) {
+    public List<ClientIpInfoVO> getAllClientIpInfoListByServerPort(Integer serverPort) {
         synchronized (flowStatisticsDetailRepository) {
             List<String> allIpList;
             allIpList = flowStatisticsDetailRepository.findAllIpListByServerPort(serverPort);
             log.debug("allIpList = {}", allIpList);
             return getClientIpInfoListByIpList(allIpList);
+        }
+    }
+
+    @Override
+    public List<ClientHostBrowseContentVO> getClientHostBrowseContentList(String clientHost) {
+        synchronized (flowStatisticsDetailRepository) {
+            // 首先通过clientHost查出来它访问了哪些remoteAddress
+            List<ClientHostBrowseContentVO> remoteAddressList = flowStatisticsDetailRepository.findAllClientHostBrowseContentByClientHost(clientHost);
+            remoteAddressList.sort(new Comparator<ClientHostBrowseContentVO>() {
+                @Override
+                public int compare(ClientHostBrowseContentVO o1, ClientHostBrowseContentVO o2) {
+                    return o1.getBrowseCount() >= o2.getBrowseCount() ? -1 : 1;
+                }
+            });
+            for (ClientHostBrowseContentVO remoteAddress : remoteAddressList) {
+                remoteAddress.setClientHost(clientHost);
+            }
+            return remoteAddressList;
         }
     }
 
@@ -160,16 +178,16 @@ public class FlowStatisticsDetailServiceImpl implements IFlowStatisticsDetailSer
     }
 
     /**
-     * 通过IP列表，查询http://ip-api.com/json/，获取IpInfo列表
+     * 通过IP列表，查询http://clientHost-api.com/json/，获取IpInfo列表
      *
      * @param allIpList
      * @return
      */
-    private List<ClientIpInfo> getClientIpInfoListByIpList(List<String> allIpList) {
-        List<ClientIpInfo> allClientIpInfoList = new ArrayList<>();
+    private List<ClientIpInfoVO> getClientIpInfoListByIpList(List<String> allIpList) {
+        List<ClientIpInfoVO> allClientIpInfoList = new ArrayList<>();
         RestTemplate restTemplate = new RestTemplate();
         for (String ip : allIpList) {
-            ClientIpInfo clientIpInfo = restTemplate.getForObject("http://ip-api.com/json/" + ip, ClientIpInfo.class);
+            ClientIpInfoVO clientIpInfo = restTemplate.getForObject("http://ip-api.com/json/" + ip, ClientIpInfoVO.class);
             allClientIpInfoList.add(clientIpInfo);
         }
         return allClientIpInfoList;

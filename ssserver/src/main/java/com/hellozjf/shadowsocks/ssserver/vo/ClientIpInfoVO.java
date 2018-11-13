@@ -6,7 +6,7 @@ import lombok.Data;
  * @author Jingfeng Zhou
  */
 @Data
-public class ClientIpInfo {
+public class ClientIpInfoVO {
     private String as;
     private String city;
     private String country;

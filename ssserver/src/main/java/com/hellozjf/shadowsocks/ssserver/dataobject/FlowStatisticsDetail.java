@@ -18,7 +18,8 @@ import javax.persistence.Table;
         @Index(name = "userFlowSummary", columnList = "serverPort, direction, gmtCreate"),
         @Index(name = "allFlowSummary", columnList = "direction, gmtCreate"),
         @Index(name = "minuteFlowSummary", columnList = "gmtCreate"),
-        @Index(name = "portCreateTime", columnList = "serverPort, gmtCreate")
+        @Index(name = "portCreateTime", columnList = "serverPort, gmtCreate"),
+        @Index(name = "browseContent", columnList = "clientHost, remoteAddress")
 })
 public class FlowStatisticsDetail extends BaseEntity {
 
@@ -31,7 +32,7 @@ public class FlowStatisticsDetail extends BaseEntity {
     }
 
     /**
-     * 方向，@See com.hellozjf.shadowsocks.ssserver.constant.InOutSiteEnum
+     * 方向，{@link com.hellozjf.shadowsocks.ssserver.constant.InOutSiteEnum}
      */
     private Integer direction;
 

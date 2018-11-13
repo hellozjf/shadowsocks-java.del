@@ -1,11 +1,10 @@
 package com.hellozjf.shadowsocks.ssserver.repository;
 
 import com.hellozjf.shadowsocks.ssserver.dataobject.FlowStatisticsDetail;
-import com.hellozjf.shadowsocks.ssserver.dataobject.FlowSummary;
+import com.hellozjf.shadowsocks.ssserver.vo.ClientHostBrowseContentVO;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -15,6 +14,14 @@ public interface FlowStatisticsDetailRepository extends JpaRepository<FlowStatis
 
     FlowStatisticsDetail findTopByServerPortOrderByGmtCreateAsc(Integer serverPort);
     void deleteAllByServerPort(Integer serverPort);
+
+    @Query(
+            "select new com.hellozjf.shadowsocks.ssserver.vo.ClientHostBrowseContentVO(remoteAddress, count(remoteAddress), sum(flowSize)) " +
+                    "from FlowStatisticsDetail " +
+                    "where clientHost = ?1 " +
+                    "group by remoteAddress"
+    )
+    List<ClientHostBrowseContentVO> findAllClientHostBrowseContentByClientHost(String clientHost);
 
     @Query(
             "select distinct clientHost " +
