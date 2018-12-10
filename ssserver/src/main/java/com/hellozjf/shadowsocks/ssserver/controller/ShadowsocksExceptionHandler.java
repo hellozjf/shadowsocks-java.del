@@ -1,5 +1,6 @@
-package com.hellozjf.shadowsocks.ssserver.exception;
+package com.hellozjf.shadowsocks.ssserver.controller;
 
+import com.hellozjf.shadowsocks.ssserver.exception.ShadowsocksException;
 import com.hellozjf.shadowsocks.ssserver.util.ResultUtils;
 import com.hellozjf.shadowsocks.ssserver.vo.ResultVO;
 import lombok.extern.slf4j.Slf4j;
@@ -13,7 +14,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
  */
 @Slf4j
 @ControllerAdvice
-public class ExceptionHandle {
+public class ShadowsocksExceptionHandler {
 
     @ExceptionHandler(value = Exception.class)
     @ResponseBody
