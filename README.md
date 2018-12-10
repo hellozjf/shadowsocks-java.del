@@ -1,6 +1,12 @@
 # 简介
 本项目核心代码来自[https://github.com/TongxiJi/shadowsocks-java](https://github.com/TongxiJi/shadowsocks-java)，以下是本人在此基础上所加的功能。
 
+## 总体计划
+
+- [ ] 支持流量监控和下载功能的ssserver
+- [ ] 配套的ssclient
+- [ ] 分布式ssserver
+
 ## ssserver
 
 - [x] 整合springboot
